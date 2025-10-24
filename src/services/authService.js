@@ -7,6 +7,12 @@ export const authService = {
     return response.data;
   },
 
+  // User signup (customer registration)
+  signup: async (userData) => {
+    const response = await api.post('/auth/signup', userData);
+    return response.data;
+  },
+
   // User login
   login: async (email, password) => {
     const response = await api.post('/auth/login', { email, password });

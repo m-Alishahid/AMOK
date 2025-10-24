@@ -15,7 +15,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata = {
-  title: "Admin Panel",
+  title: "Childern Salon Admin Panel",
   description: "Next.js Admin Panel with Authentication",
 };
 

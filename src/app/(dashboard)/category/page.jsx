@@ -2,21 +2,17 @@
 
 import { useState, useRef, useEffect } from "react";
 import { categoryService } from "@/services/categoryService";
+import { toast } from "sonner";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [formMode, setFormMode] = useState('add'); // 'add' or 'edit'
+  const [formMode, setFormMode] = useState('add');
   const [currentCategory, setCurrentCategory] = useState({
     name: "",
     description: "",
     image: "",
-    shippingCost: 0,
-    taxRate: 0,
-    seoTitle: "",
-    seoDescription: "",
-    metaKeywords: "",
     isFeatured: false,
     status: "Active"
   });
@@ -33,7 +29,7 @@ export default function Categories() {
       setCategories(response.data);
     } catch (error) {
       console.error('Failed to load categories:', error);
-      alert(error.message);
+      toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -43,8 +39,18 @@ export default function Categories() {
     loadCategories();
   }, []);
 
+  // Convert image file to base64
+  const convertToBase64 = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = error => reject(error);
+    });
+  };
+
   // Handle image upload
-  const handleImageUpload = (event) => {
+  const handleImageUpload = async (event) => {
     const file = event.target.files[0];
     if (file) {
       // Validate file type
@@ -60,20 +66,25 @@ export default function Categories() {
         return;
       }
 
-      // Create preview
-      const previewUrl = URL.createObjectURL(file);
-      setImagePreview(previewUrl);
+      try {
+        // Create preview
+        const previewUrl = URL.createObjectURL(file);
+        setImagePreview(previewUrl);
 
-      // In real application, you would upload the file to your server here
-      // For now, we'll simulate by setting a mock URL
-      setCurrentCategory(prev => ({
-        ...prev,
-        image: `/uploads/categories/${Date.now()}-${file.name}`
-      }));
+        // Convert to base64 for Cloudinary upload
+        const base64Image = await convertToBase64(file);
+        setCurrentCategory(prev => ({
+          ...prev,
+          image: base64Image
+        }));
 
-      // Clear any previous image errors
-      if (errors.image) {
-        setErrors(prev => ({ ...prev, image: "" }));
+        // Clear any previous image errors
+        if (errors.image) {
+          setErrors(prev => ({ ...prev, image: "" }));
+        }
+      } catch (error) {
+        console.error('Error converting image:', error);
+        setErrors(prev => ({ ...prev, image: "Failed to process image" }));
       }
     }
   };
@@ -107,14 +118,6 @@ export default function Categories() {
       newErrors.image = "Category image is required";
     }
 
-    if (currentCategory.taxRate < 0 || currentCategory.taxRate > 100) {
-      newErrors.taxRate = "Tax rate must be between 0 and 100";
-    }
-
-    if (currentCategory.shippingCost < 0) {
-      newErrors.shippingCost = "Shipping cost cannot be negative";
-    }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -127,16 +130,16 @@ export default function Categories() {
     try {
       if (formMode === 'add') {
         await categoryService.create(currentCategory);
-        alert('Category created successfully!');
+        toast.success('Category created successfully!');
       } else {
         await categoryService.update(currentCategory._id, currentCategory);
-        alert('Category updated successfully!');
+        toast.success('Category updated successfully!');
       }
       resetForm();
-      loadCategories(); // Reload categories
+      loadCategories();
     } catch (error) {
       console.error('Failed to save category:', error);
-      alert(error.message);
+      toast.error(error.message || 'Failed to save category');
     } finally {
       setSubmitLoading(false);
     }
@@ -152,15 +155,15 @@ export default function Categories() {
 
   // Delete category
   const handleDeleteCategory = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this category?")) return;
+    if (!window.confirm("Are you sure you want to delete this category? This will also delete the category page.")) return;
 
     try {
       await categoryService.delete(id);
-      alert('Category deleted successfully!');
-      loadCategories(); // Reload categories
+      toast.success('Category deleted successfully!');
+      loadCategories();
     } catch (error) {
       console.error('Failed to delete category:', error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -169,11 +172,11 @@ export default function Categories() {
     try {
       const newStatus = currentStatus === 'Active' ? 'Inactive' : 'Active';
       await categoryService.toggleStatus(id, newStatus);
-      alert(`Category ${newStatus.toLowerCase()} successfully!`);
-      loadCategories(); // Reload categories
+      toast.success(`Category ${newStatus.toLowerCase()} successfully!`);
+      loadCategories();
     } catch (error) {
       console.error('Failed to update status:', error);
-      alert(error.message);
+      toast.error(error.message);
     }
   };
 
@@ -183,11 +186,6 @@ export default function Categories() {
       name: "", 
       description: "", 
       image: "",
-      shippingCost: 0,
-      taxRate: 0,
-      seoTitle: "",
-      seoDescription: "",
-      metaKeywords: "",
       isFeatured: false,
       status: "Active"
     });
@@ -196,7 +194,6 @@ export default function Categories() {
     setShowForm(false);
     setFormMode('add');
     
-    // Reset file input
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -350,100 +347,6 @@ export default function Categories() {
               {errors.description && <p className="text-red-500 text-sm mt-2">{errors.description}</p>}
             </div>
 
-            {/* Financial Settings */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">Financial Settings</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label htmlFor="shippingCost" className="block text-sm font-medium text-gray-700 mb-2">
-                    Shipping Cost (₹)
-                  </label>
-                  <input
-                    type="number"
-                    id="shippingCost"
-                    value={currentCategory.shippingCost}
-                    onChange={(e) => handleInputChange('shippingCost', parseFloat(e.target.value) || 0)}
-                    className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black transition duration-200 ${
-                      errors.shippingCost ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    min="0"
-                    step="0.01"
-                    disabled={submitLoading}
-                  />
-                  {errors.shippingCost && <p className="text-red-500 text-sm mt-2">{errors.shippingCost}</p>}
-                </div>
-
-                <div>
-                  <label htmlFor="taxRate" className="block text-sm font-medium text-gray-700 mb-2">
-                    Tax Rate (%)
-                  </label>
-                  <input
-                    type="number"
-                    id="taxRate"
-                    value={currentCategory.taxRate}
-                    onChange={(e) => handleInputChange('taxRate', parseFloat(e.target.value) || 0)}
-                    className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black transition duration-200 ${
-                      errors.taxRate ? 'border-red-500' : 'border-gray-300'
-                    }`}
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    disabled={submitLoading}
-                  />
-                  {errors.taxRate && <p className="text-red-500 text-sm mt-2">{errors.taxRate}</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* SEO Section */}
-            <div className="bg-gray-50 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">SEO Settings</h3>
-              <div className="space-y-4">
-                <div>
-                  <label htmlFor="seoTitle" className="block text-sm font-medium text-gray-700 mb-2">
-                    SEO Title
-                  </label>
-                  <input
-                    type="text"
-                    id="seoTitle"
-                    value={currentCategory.seoTitle}
-                    onChange={(e) => handleInputChange('seoTitle', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black transition duration-200"
-                    placeholder="SEO title for search engines"
-                    disabled={submitLoading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="seoDescription" className="block text-sm font-medium text-gray-700 mb-2">
-                    SEO Description
-                  </label>
-                  <textarea
-                    id="seoDescription"
-                    value={currentCategory.seoDescription}
-                    onChange={(e) => handleInputChange('seoDescription', e.target.value)}
-                    rows={3}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition duration-200"
-                    placeholder="Meta description for search engines"
-                    disabled={submitLoading}
-                  />
-                </div>
-                <div>
-                  <label htmlFor="metaKeywords" className="block text-sm font-medium text-gray-700 mb-2">
-                    Meta Keywords
-                  </label>
-                  <input
-                    type="text"
-                    id="metaKeywords"
-                    value={currentCategory.metaKeywords}
-                    onChange={(e) => handleInputChange('metaKeywords', e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black transition duration-200"
-                    placeholder="Comma separated keywords"
-                    disabled={submitLoading}
-                  />
-                </div>
-              </div>
-            </div>
-
             {/* Form Actions */}
             <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
               <button
@@ -454,7 +357,7 @@ export default function Categories() {
                 {submitLoading ? (
                   <>
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Saving...
+                    {formMode === 'add' ? 'Creating...' : 'Updating...'}
                   </>
                 ) : (
                   <>
@@ -477,8 +380,8 @@ export default function Categories() {
         </div>
       )}
 
-      {/* Loading State */}
-      {loading && (
+            {/* Loading State */}
+       {loading && (
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
           <p className="mt-4 text-gray-600 text-lg">Loading categories...</p>
@@ -495,9 +398,6 @@ export default function Categories() {
                   <tr>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Category
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Financial
                     </th>
                     <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
                       Status
@@ -526,12 +426,6 @@ export default function Categories() {
                               </span>
                             )}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="text-sm text-gray-900 space-y-1">
-                          <div className="font-medium">Shipping: ₹{category.shippingCost}</div>
-                          <div className="font-medium">Tax: {category.taxRate}%</div>
                         </div>
                       </td>
                       <td className="px-6 py-4">

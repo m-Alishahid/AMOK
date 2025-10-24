@@ -77,7 +77,7 @@ export default function ProductPage() {
       <div className="min-h-screen bg-gray-50">
         <Navbar />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#cda434]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary-blue)]"></div>
         </div>
       </div>
     );
@@ -112,7 +112,7 @@ export default function ProductPage() {
                         value={category}
                         checked={selectedCategory === category}
                         onChange={(e) => setSelectedCategory(e.target.value)}
-                        className="mr-2 text-[#cda434] focus:ring-[#cda434]"
+                        className="mr-2 text-[var(--primary-blue)] focus:ring-[var(--primary-blue)]"
                       />
                       <span className="text-gray-600">{category}</span>
                     </label>
@@ -134,7 +134,7 @@ export default function ProductPage() {
                     max="200"
                     value={priceRange[1]}
                     onChange={(e) => setPriceRange([priceRange[0], parseInt(e.target.value)])}
-                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[#cda434]"
+                    className="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-[var(--primary-blue)]"
                   />
                 </div>
               </div>
@@ -145,7 +145,7 @@ export default function ProductPage() {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#cda434] focus:border-transparent"
+                  className="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[var(--primary-blue)] focus:border-transparent"
                 >
                   <option value="newest">Newest First</option>
                   <option value="price-low">Price: Low to High</option>
@@ -207,22 +207,29 @@ export default function ProductPage() {
                     </div>
 
                     <div className="flex items-center gap-2 mb-4">
-                      <span className="text-xl font-bold text-[#cda434]">£{product.price}</span>
+                      <span className="text-xl font-bold text-[var(--primary-blue)]">£{product.price}</span>
                       {product.originalPrice > product.price && (
                         <span className="text-sm text-gray-500 line-through">£{product.originalPrice}</span>
                       )}
                     </div>
 
-                    <button
-                      className={`w-full py-2 px-4 rounded-lg font-semibold transition-colors ${
-                        product.inStock
-                          ? 'bg-[#cda434] hover:bg-[#b8942a] text-white'
-                          : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                      }`}
-                      disabled={!product.inStock}
-                    >
-                      {product.inStock ? 'Add to Cart' : 'Out of Stock'}
-                    </button>
+                    <div className="flex gap-2">
+                      <button
+                        className={`flex-1 py-2 px-4 rounded-lg font-semibold transition-colors ${
+                          product.inStock
+                            ? 'bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white'
+                            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                        }`}
+                        disabled={!product.inStock}
+                      >
+                        {product.inStock ? 'Add to Cart' : 'Out of Stock'}
+                      </button>
+                      <button
+                        className="flex-1 py-2 px-4 rounded-lg font-semibold transition-colors bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white"
+                      >
+                        View Details
+                      </button>
+                    </div>
                   </div>
                 </div>
               ))}

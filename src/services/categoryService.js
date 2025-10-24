@@ -7,11 +7,22 @@ export const categoryService = {
     return response.data;
   },
 
-  // Get category by ID
-  getById: async (id) => {
-    const response = await api.get(`/categories/${id}`);
+  // // Get category by ID
+  // getById: async (id) => {
+  //   const response = await api.get(`/categories/${id}`);
+  //   return response.data;
+  // },
+
+  getById: async (idOrSlug) => {
+    const res = await api.get(`/categories/${idOrSlug}`);
+    return res.data;
+  },
+
+  getBySlug: async (slug) => {
+    const response = await api.get(`/categories/${slug}`);
     return response.data;
   },
+
 
   // Create new category
   create: async (categoryData) => {

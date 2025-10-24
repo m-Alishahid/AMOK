@@ -8,10 +8,9 @@ export async function GET(request) {
   try {
     await connectDB();
 
-    // Get token from cookie or Authorization header
+    // 1️⃣ Get token from cookie or Authorization header
     let token = request.cookies.get('token')?.value;
 
-    // Check Authorization header if no cookie token
     if (!token) {
       const authHeader = request.headers.get('authorization');
       if (authHeader && authHeader.startsWith('Bearer ')) {
@@ -26,21 +25,20 @@ export async function GET(request) {
       );
     }
 
-    // Verify token
+    // 2️⃣ Verify token
     const decoded = verifyToken(token);
-
     if (!decoded) {
       return NextResponse.json(
-        { success: false, error: 'Invalid token' },
+        { success: false, error: 'Invalid or expired token' },
         { status: 401 }
       );
     }
 
-    // Find user with role populated
+    // 3️⃣ Fetch user with role populated
     const user = await User.findById(decoded.userId)
       .populate('role')
       .select('-password');
-    
+
     if (!user) {
       return NextResponse.json(
         { success: false, error: 'User not found' },
@@ -55,6 +53,16 @@ export async function GET(request) {
       );
     }
 
+    // 4️⃣ Handle null role safely
+    const roleName =
+      typeof user.role === 'object'
+        ? user.role?.name || 'customer'
+        : user.role || 'customer';
+
+    const rolePermissions =
+      typeof user.role === 'object' ? user.role?.permissions || [] : [];
+
+    // 5️⃣ Response with safe structure
     return NextResponse.json({
       success: true,
       data: {
@@ -62,28 +70,29 @@ export async function GET(request) {
           id: user._id,
           firstName: user.firstName,
           lastName: user.lastName,
-          email: user.email,
-          role: user.role.name,
           fullName: user.fullName,
-          profileImage: user.profileImage,
+          email: user.email,
           phone: user.phone,
           department: user.department,
           position: user.position,
           employeeId: user.employeeId,
+          profileImage: user.profileImage,
           isActive: user.isActive,
           isEmailVerified: user.isEmailVerified,
           lastLogin: user.lastLogin,
-          permissions: user.role.permissions
-        }
-      }
+          role: roleName,
+          roleType: roleName, // ✅ extra shortcut for frontend logic
+          permissions: rolePermissions,
+        },
+      },
     });
   } catch (error) {
     console.error('Get Current User Error:', error);
     return NextResponse.json(
-      { 
-        success: false, 
+      {
+        success: false,
         error: 'Failed to get user data',
-        details: error.message 
+        details: error.message,
       },
       { status: 500 }
     );

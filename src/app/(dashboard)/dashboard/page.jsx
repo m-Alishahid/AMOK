@@ -182,18 +182,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-muted-foreground">
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Dashboard</h1>
+          <p className="text-xs sm:text-sm lg:text-base text-muted-foreground">
             Welcome back, Admin • {new Date().toLocaleDateString()}
           </p>
         </div>
-        <Button 
-          onClick={() => setShowDiscountManager(true)} 
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+        <Button
+          onClick={() => setShowDiscountManager(true)}
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 py-2 sm:py-3 text-sm"
         >
           <Percent className="h-4 w-4" />
           Manage Discounts
@@ -201,7 +201,7 @@ export default function Dashboard() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <Card className="border-blue-200 bg-blue-50/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-blue-900">Total Products</CardTitle>
@@ -262,41 +262,41 @@ export default function Dashboard() {
           <CardDescription className="text-blue-700">Manage your store quickly</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
             <Button
               onClick={() => router.push('/products/add')}
-              className="h-auto flex-col items-center justify-center p-4 space-y-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
+              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
             >
-              <Plus className="h-6 w-6" />
-              <span className="font-semibold">Add Product</span>
-              <span className="text-xs text-blue-100 text-center">Create new product</span>
+              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="font-semibold text-center">Add Product</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">Create new product</span>
             </Button>
 
             <Button
               onClick={() => setShowDiscountManager(true)}
-              className="h-auto flex-col items-center justify-center p-4 space-y-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
+              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
             >
-              <Percent className="h-6 w-6" />
-              <span className="font-semibold">Create Discount</span>
-              <span className="text-xs text-blue-100 text-center">Add special offer</span>
+              <Percent className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="font-semibold text-center">Create Discount</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">Add special offer</span>
             </Button>
 
             <Button
               onClick={() => router.push('/categories')}
-              className="h-auto flex-col items-center justify-center p-4 space-y-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
+              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
             >
-              <FolderOpen className="h-6 w-6" />
-              <span className="font-semibold">Manage Categories</span>
-              <span className="text-xs text-blue-100 text-center">View all categories</span>
+              <FolderOpen className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="font-semibold text-center">Manage Categories</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">View all categories</span>
             </Button>
 
             <Button
               onClick={() => router.push('/products')}
-              className="h-auto flex-col items-center justify-center p-4 space-y-2 bg-blue-600 hover:bg-blue-700 border-blue-600"
+              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
             >
-              <Package className="h-6 w-6" />
-              <span className="font-semibold">View Products</span>
-              <span className="text-xs text-blue-100 text-center">All products list</span>
+              <Package className="h-5 w-5 sm:h-6 sm:w-6" />
+              <span className="font-semibold text-center">View Products</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">All products list</span>
             </Button>
           </div>
         </CardContent>
@@ -335,7 +335,7 @@ export default function Dashboard() {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="h-80">
+          <div className="h-64 sm:h-80">
             <ResponsiveContainer width="100%" height="100%">
               <AreaChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
@@ -380,7 +380,7 @@ export default function Dashboard() {
       </Card>
 
       {/* Bottom Section */}
-      <div className="grid gap-6 md:grid-cols-2">
+      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
         {/* Recent Activity */}
         <Card className="border-blue-100 bg-white">
           <CardHeader>
@@ -390,20 +390,20 @@ export default function Dashboard() {
           <CardContent>
             <div className="space-y-4">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
+                <div key={activity.id} className="flex items-center space-x-3 sm:space-x-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
                   <div className={`rounded-full p-2 ${
-                    activity.color === 'blue' ? 'bg-blue-100' : 
-                    activity.color === 'green' ? 'bg-green-100' : 
-                    activity.color === 'purple' ? 'bg-purple-100' : 
+                    activity.color === 'blue' ? 'bg-blue-100' :
+                    activity.color === 'green' ? 'bg-green-100' :
+                    activity.color === 'purple' ? 'bg-purple-100' :
                     'bg-orange-100'
                   }`}>
                     <span className="text-sm">{activity.icon}</span>
                   </div>
-                  <div className="flex-1 space-y-1">
-                    <p className="text-sm font-medium leading-none text-blue-900">{activity.action}</p>
-                    <p className="text-sm text-blue-700">{activity.details}</p>
+                  <div className="flex-1 space-y-1 min-w-0">
+                    <p className="text-sm font-medium leading-none text-blue-900 truncate">{activity.action}</p>
+                    <p className="text-sm text-blue-700 truncate">{activity.details}</p>
                   </div>
-                  <div className="text-sm text-blue-600">{activity.timestamp}</div>
+                  <div className="text-xs sm:text-sm text-blue-600 whitespace-nowrap">{activity.timestamp}</div>
                 </div>
               ))}
             </div>

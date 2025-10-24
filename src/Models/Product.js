@@ -9,7 +9,8 @@ const colorStockSchema = new mongoose.Schema({
   stock: {
     type: Number,
     required: false,
-    min: 0
+    min: 0,
+    default: 0
   }
 });
 
@@ -48,11 +49,26 @@ const productSchema = new mongoose.Schema({
   salePrice: {
     type: Number,
     required: [true, 'Sale price is required'],
-    min: [0, 'Sale price cannot be negative']
+    min: [0, 'Sale price cannot be negative'],
+    validate: {
+      validator: function(value) {
+        return value >= this.costPrice;
+      },
+      message: 'Sale price should be greater than or equal to cost price'
+    }
   },
   discountedPrice: {
     type: Number,
-    min: [0, 'Discounted price cannot be negative']
+    min: [0, 'Discounted price cannot be negative'],
+    validate: {
+      validator: function(value) {
+        if (value > 0) {
+          return value <= this.salePrice && value >= this.costPrice;
+        }
+        return true;
+      },
+      message: 'Discounted price should be between cost price and sale price'
+    }
   },
   discountPercentage: {
     type: Number,
@@ -61,8 +77,12 @@ const productSchema = new mongoose.Schema({
     default: 0
   },
   
-  // Profit Calculation (Virtual)
+  // Profit Calculation
   profit: {
+    type: Number,
+    default: 0
+  },
+  profitPercentage: {
     type: Number,
     default: 0
   },
@@ -74,7 +94,7 @@ const productSchema = new mongoose.Schema({
     required: [true, 'Category is required']
   },
   
-  // Product Properties - YEH NAYA SECTION ADD KIYA
+  // Product Properties
   requiresSize: {
     type: Boolean,
     default: false
@@ -90,11 +110,11 @@ const productSchema = new mongoose.Schema({
   
   // Images
   images: [{
-    type: String, // URLs of uploaded images
+    type: String,
     required: true
   }],
   thumbnail: {
-    type: String, // URL of thumbnail image
+    type: String,
     required: true
   },
   
@@ -149,31 +169,202 @@ const productSchema = new mongoose.Schema({
   }
 });
 
-// Calculate profit before saving
+// ✅ PERFECT PRE-SAVE HOOK - Single aur optimized
 productSchema.pre('save', function(next) {
   const sellingPrice = this.discountedPrice > 0 ? this.discountedPrice : this.salePrice;
+  
+  // Profit calculation
   this.profit = sellingPrice - this.costPrice;
   
-  // Calculate discount percentage if discounted price is set
-  if (this.discountedPrice > 0 && this.salePrice > 0) {
-    this.discountPercentage = Math.round(((this.salePrice - this.discountedPrice) / this.salePrice) * 100);
+  // Profit percentage calculation
+  if (this.costPrice > 0) {
+    this.profitPercentage = Math.round((this.profit / this.costPrice) * 100);
+  } else {
+    this.profitPercentage = 0;
+  }
+  
+  // ✅ PERFECT DISCOUNT CALCULATION
+  if (this.discountedPrice > 0 && this.discountedPrice < this.salePrice && this.salePrice > 0) {
+    const discountAmount = this.salePrice - this.discountedPrice;
+    this.discountPercentage = Math.round((discountAmount / this.salePrice) * 100);
+    
+    // Ensure discount percentage is valid
+    if (this.discountPercentage <= 0 || this.discountPercentage > 100) {
+      this.discountPercentage = 0;
+      this.discountedPrice = null;
+    }
+  } else {
+    this.discountPercentage = 0;
+    // If discounted price is invalid, reset it
+    if (this.discountedPrice && (this.discountedPrice >= this.salePrice || this.discountedPrice < this.costPrice)) {
+      this.discountedPrice = null;
+    }
+  }
+  
+  // ✅ TOTAL STOCK CALCULATION FROM VARIANTS
+  if (this.variants && this.variants.length > 0) {
+    this.totalStock = this.variants.reduce((total, variant) => {
+      const variantStock = variant.colors.reduce((colorSum, color) => {
+        return colorSum + (parseInt(color.stock) || 0);
+      }, 0);
+      return total + variantStock;
+    }, 0);
+    
+    // Set requiresSize and requiresColor based on variants
+    this.requiresSize = this.variants.some(v => v.size && v.size.trim() !== '');
+    this.requiresColor = this.variants.some(v => v.colors && v.colors.length > 0);
+    this.hasVariants = this.requiresSize || this.requiresColor;
   }
   
   this.updatedAt = Date.now();
   next();
 });
 
-// Index for better performance
-productSchema.index({ category: 1 });
-productSchema.index({ status: 1 });
-productSchema.index({ createdAt: -1 });
+// ✅ PRE-UPDATE HOOK for findOneAndUpdate operations
+productSchema.pre('findOneAndUpdate', function(next) {
+  const update = this.getUpdate();
+  
+  if (update.$set) {
+    const set = update.$set;
+    
+    // Recalculate if pricing fields are being updated
+    if (set.costPrice !== undefined || set.salePrice !== undefined || set.discountedPrice !== undefined) {
+      const sellingPrice = (set.discountedPrice > 0 ? set.discountedPrice : set.salePrice) || this._update.$set.salePrice;
+      const costPrice = set.costPrice || this._update.$set.costPrice;
+      
+      if (sellingPrice && costPrice) {
+        update.$set.profit = sellingPrice - costPrice;
+        if (costPrice > 0) {
+          update.$set.profitPercentage = Math.round(((sellingPrice - costPrice) / costPrice) * 100);
+        }
+      }
+      
+      // Recalculate discount percentage
+      if (set.discountedPrice !== undefined && set.salePrice !== undefined) {
+        if (set.discountedPrice > 0 && set.discountedPrice < set.salePrice) {
+          const discountAmount = set.salePrice - set.discountedPrice;
+          update.$set.discountPercentage = Math.round((discountAmount / set.salePrice) * 100);
+        } else {
+          update.$set.discountPercentage = 0;
+          if (set.discountedPrice >= set.salePrice) {
+            update.$set.discountedPrice = null;
+          }
+        }
+      }
+    }
+    
+    // Recalculate total stock if variants are updated
+    if (set.variants !== undefined) {
+      const variants = set.variants;
+      if (variants && variants.length > 0) {
+        const totalStock = variants.reduce((total, variant) => {
+          const variantStock = variant.colors.reduce((colorSum, color) => {
+            return colorSum + (parseInt(color.stock) || 0);
+          }, 0);
+          return total + variantStock;
+        }, 0);
+        update.$set.totalStock = totalStock;
+        
+        // Update variant flags
+        update.$set.requiresSize = variants.some(v => v.size && v.size.trim() !== '');
+        update.$set.requiresColor = variants.some(v => v.colors && v.colors.length > 0);
+        update.$set.hasVariants = update.$set.requiresSize || update.$set.requiresColor;
+      }
+    }
+  }
+  
+  update.$set = { ...update.$set, updatedAt: new Date() };
+  next();
+});
 
-// Virtual for discount amount
+// ✅ VIRTUAL FIELDS
 productSchema.virtual('discountAmount').get(function() {
-  if (this.discountedPrice > 0) {
+  if (this.discountedPrice > 0 && this.discountedPrice < this.salePrice) {
     return this.salePrice - this.discountedPrice;
   }
   return 0;
 });
+
+productSchema.virtual('finalPrice').get(function() {
+  return this.discountedPrice > 0 ? this.discountedPrice : this.salePrice;
+});
+
+productSchema.virtual('isOnSale').get(function() {
+  return this.discountedPrice > 0 && this.discountedPrice < this.salePrice;
+});
+
+// ✅ METHODS
+productSchema.methods.getStockForVariant = function(size, color) {
+  if (!this.variants || this.variants.length === 0) {
+    return this.totalStock;
+  }
+  
+  const variant = this.variants.find(v => v.size === size);
+  if (variant && variant.colors) {
+    const colorVariant = variant.colors.find(c => c.color === color);
+    return colorVariant ? colorVariant.stock : 0;
+  }
+  
+  return 0;
+};
+
+productSchema.methods.getAvailableSizes = function() {
+  if (!this.variants || this.variants.length === 0) {
+    return [];
+  }
+  
+  return [...new Set(this.variants.map(v => v.size))].filter(Boolean);
+};
+
+productSchema.methods.getAvailableColors = function(size = null) {
+  if (!this.variants || this.variants.length === 0) {
+    return [];
+  }
+  
+  let targetVariants = this.variants;
+  if (size) {
+    targetVariants = this.variants.filter(v => v.size === size);
+  }
+  
+  const allColors = targetVariants.flatMap(v => v.colors || []);
+  const uniqueColors = [...new Map(allColors.map(color => [color.color, color])).values()];
+  
+  return uniqueColors;
+};
+
+// ✅ STATIC METHODS
+productSchema.statics.getProductsByCategory = function(categoryId) {
+  return this.find({ category: categoryId, status: 'Active' }).populate('category');
+};
+
+productSchema.statics.getFeaturedProducts = function(limit = 10) {
+  return this.find({ status: 'Active' })
+    .sort({ sales: -1, views: -1 })
+    .limit(limit)
+    .populate('category');
+};
+
+productSchema.statics.getDiscountedProducts = function(limit = 10) {
+  return this.find({ 
+    status: 'Active',
+    discountedPrice: { $gt: 0 },
+    salePrice: { $gt: 0 },
+    $expr: { $lt: ['$discountedPrice', '$salePrice'] }
+  })
+  .sort({ discountPercentage: -1 })
+  .limit(limit)
+  .populate('category');
+};
+
+// ✅ INDEXES for better performance
+productSchema.index({ category: 1, status: 1 });
+productSchema.index({ status: 1, createdAt: -1 });
+productSchema.index({ discountPercentage: -1 });
+productSchema.index({ 'variants.colors.stock': 1 });
+productSchema.index({ name: 'text', description: 'text' });
+
+// ✅ SET VIRTUALS TO JSON
+productSchema.set('toJSON', { virtuals: true });
+productSchema.set('toObject', { virtuals: true });
 
 export default mongoose.models.Product || mongoose.model('Product', productSchema);

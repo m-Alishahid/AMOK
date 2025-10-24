@@ -43,6 +43,12 @@ export const discountService = {
     return response.data;
   },
 
+    // Update discount statuses
+  updateStatuses: async () => {
+    const response = await api.post('/discounts/status');
+    return response.data;
+  },
+
   // Get discount statistics
   getStats: async () => {
     const response = await api.get('/discounts/stats');

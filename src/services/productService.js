@@ -49,5 +49,10 @@ export const productService = {
   updateStatus: async (id, status) => {
     const response = await api.patch(`/products/${id}/status`, { status });
     return response.data;
-  }
+  },
+    // Increment product views
+  incrementViews: async (id) => {
+    const response = await api.patch(`/products/${id}/views`);
+    return response.data;
+  },
 };

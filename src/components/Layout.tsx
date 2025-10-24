@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
+import { FiMenu } from "react-icons/fi";
+import { Toaster } from "@/components/ui/sonner";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -9,11 +11,14 @@ interface LayoutProps {
 
 const Layout = ({ children }: LayoutProps) => {
   const [isOpen, setIsOpen] = useState(true);
+  const [isMobile, setIsMobile] = useState(false);
 
   // Close sidebar by default on mobile
   useEffect(() => {
     const handleResize = () => {
-      if (window.innerWidth < 1024) { // lg breakpoint
+      const mobile = window.innerWidth < 1024; // lg breakpoint
+      setIsMobile(mobile);
+      if (mobile) {
         setIsOpen(false);
       } else {
         setIsOpen(true);
@@ -31,15 +36,24 @@ const Layout = ({ children }: LayoutProps) => {
 
   return (
     <div className="flex">
-      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} />
+      {isMobile && (
+        <button
+          onClick={toggleSidebar}
+          className="fixed top-4 left-4 z-50 p-2 bg-blue-500 text-white rounded-md shadow-lg hover:bg-blue-600 transition-colors"
+        >
+          <FiMenu />
+        </button>
+      )}
+      <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} isMobile={isMobile} />
       <div className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${
-        isOpen ? "ml-56" : "ml-16"
+        isMobile && isOpen ? "ml-0" : isOpen ? "ml-56" : "ml-16"
       }`}>
         {/* Main content with responsive padding */}
         <div className="p-4 sm:p-6 lg:p-8">
           {children}
         </div>
       </div>
+      <Toaster />
     </div>
   );
 };
