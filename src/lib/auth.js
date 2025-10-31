@@ -109,15 +109,17 @@ export async function getUniversalSession(request) {
     }
 
     // 3️⃣ Priority 3: Request Body
-    if (!token) {
-      try {
-        const cloneRequest = request.clone();
-        const body = await cloneRequest.json();
-        token = body.token;
-      } catch (error) {
-        // Ignore if no JSON body
-      }
-    }
+   // 3️⃣ Priority 3: Request Body
+if (!token) {
+  try {
+    const cloneRequest = request.clone();
+    const body = await cloneRequest.json();
+    token = body.token;
+  } catch {
+    // Ignore if no JSON body
+  }
+}
+
 
     // 4️⃣ Priority 4: localStorage (Client-side only - through special header)
     if (!token) {

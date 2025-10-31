@@ -4,12 +4,14 @@ import { useState, useEffect } from "react";
 import Sidebar from "./Sidebar";
 import { FiMenu } from "react-icons/fi";
 import { Toaster } from "@/components/ui/sonner";
+import { useAuth } from "@/context/AuthContext";
 
 interface LayoutProps {
   children: React.ReactNode;
 }
 
 const Layout = ({ children }: LayoutProps) => {
+  const { isAuthenticated, loading } = useAuth();
   const [isOpen, setIsOpen] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -33,6 +35,24 @@ const Layout = ({ children }: LayoutProps) => {
   const toggleSidebar = () => {
     setIsOpen(!isOpen);
   };
+
+  // Show loader if still loading authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
+  // If not authenticated, show loader (will be redirected by ProtectedRoute)
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex">

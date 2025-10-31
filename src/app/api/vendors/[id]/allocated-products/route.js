@@ -103,7 +103,7 @@ export async function GET(request, { params }) {
     }
 
     // Check access rights
-    const isAdminUser = session.user.role === 'super_admin' || session.user.isAdmin;
+    // const isAdminUser = session.user.role === 'super_admin' || session.user.isAdmin;
     const isVendorUser = session.user.role === 'vendor' || session.user.isVendor;
     
     if (isVendorUser && vendor.user.toString() !== session.user.id) {

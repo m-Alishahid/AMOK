@@ -5,7 +5,6 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Image from 'next/image'
 import { productService } from "@/services/productService";
-import { theme } from "@/lib/theme";
 
 export default function CategoryProductsPage() {
   const params = useParams();
@@ -45,7 +44,7 @@ export default function CategoryProductsPage() {
     } finally {
       setLoading(false);
     }
-  }, [categoryId, filters]);
+  }, [categoryId, categorySlug, filters]);
 
   useEffect(() => {
     fetchCategoryProducts();

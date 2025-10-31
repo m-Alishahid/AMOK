@@ -1,213 +1,3 @@
-// // app/api/invoices/[id]/pdf/route.js
-// import { NextResponse } from 'next/server';
-// import { getServerSession } from '@/lib/auth';
-// import Invoice from '@/Models/Invoice';
-// import Vendor from '@/Models/Vendor';
-// import User from '@/Models/User';
-// import connectDB from '@/lib/mongodb';
-// import PDFDocument from 'pdfkit';
-
-// export async function GET(request, { params }) {
-//   try {
-//     await connectDB();
-//     const session = await getServerSession(request);
-    
-//     if (!session) {
-//       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-//     }
-
-//     const { id } = params;
-//     const invoice = await Invoice.findById(id)
-//       .populate('vendor', 'companyName contactPerson phone email address gstNumber panNumber')
-//       .populate('createdBy', 'firstName lastName email')
-//       .populate('approvedBy', 'firstName lastName')
-//       .populate('items.product', 'name description');
-
-//     if (!invoice) {
-//       return NextResponse.json({ error: 'Invoice not found' }, { status: 404 });
-//     }
-
-//     // Check access permissions
-//     if (session.user.role === 'vendor' || session.user.isVendor) {
-//       const vendor = await Vendor.findOne({ user: session.user.id });
-//       if (!vendor || vendor._id.toString() !== invoice.vendor._id.toString()) {
-//         return NextResponse.json({ error: 'Access denied' }, { status: 403 });
-//       }
-//     }
-
-//     // Create PDF
-//     const doc = new PDFDocument({ margin: 50 });
-//     const chunks = [];
-    
-//     doc.on('data', (chunk) => chunks.push(chunk));
-//     doc.on('end', () => {});
-    
-//     // PDF Header
-//     doc.fontSize(20).font('Helvetica-Bold')
-//        .fillColor('#2c5aa0')
-//        .text('INVOICE', { align: 'center' });
-    
-//     doc.moveDown(0.5);
-//     doc.fontSize(10).font('Helvetica')
-//        .fillColor('#666666')
-//        .text(`Invoice #: ${invoice.invoiceNumber}`, { align: 'center' });
-    
-//     // Company Info
-//     doc.moveDown(1);
-//     doc.fontSize(12).font('Helvetica-Bold')
-//        .fillColor('#000000')
-//        .text('FROM:', 50, 120);
-    
-//     doc.fontSize(10).font('Helvetica')
-//        .text('Your Company Name')
-//        .text('123 Business Street')
-//        .text('City, State 12345')
-//        .text('Phone: (555) 123-4567')
-//        .text('Email: info@company.com');
-    
-//     // Vendor Info
-//     doc.fontSize(12).font('Helvetica-Bold')
-//        .text('BILL TO:', 300, 120);
-    
-//     doc.fontSize(10).font('Helvetica')
-//        .text(invoice.vendor.companyName)
-//        .text(invoice.vendor.contactPerson);
-    
-//     if (invoice.vendor.address) {
-//       doc.text(`${invoice.vendor.address.street || ''}`)
-//          .text(`${invoice.vendor.address.city || ''}, ${invoice.vendor.address.state || ''} ${invoice.vendor.address.zipCode || ''}`);
-//     }
-    
-//     doc.text(`Phone: ${invoice.vendor.phone}`)
-//        .text(`Email: ${invoice.vendor.email}`);
-    
-//     if (invoice.vendor.gstNumber) {
-//       doc.text(`GST: ${invoice.vendor.gstNumber}`);
-//     }
-//     if (invoice.vendor.panNumber) {
-//       doc.text(`PAN: ${invoice.vendor.panNumber}`);
-//     }
-    
-//     // Invoice Details
-//     doc.moveDown(2);
-//     const detailsY = doc.y;
-    
-//     doc.fontSize(10).font('Helvetica')
-//        .text('Invoice Date:', 50, detailsY)
-//        .text(new Date(invoice.createdAt).toLocaleDateString(), 150, detailsY)
-       
-//        .text('Due Date:', 50, detailsY + 15)
-//        .text(new Date(invoice.dueDate).toLocaleDateString(), 150, detailsY + 15)
-       
-//        .text('Invoice Type:', 300, detailsY)
-//        .text(invoice.type.replace('_', ' ').toUpperCase(), 380, detailsY)
-       
-//        .text('Status:', 300, detailsY + 15)
-//        .text(invoice.status, 380, detailsY + 15);
-    
-//     // Items Table Header
-//     doc.moveDown(2);
-//     const tableTop = doc.y;
-    
-//     doc.fontSize(10).font('Helvetica-Bold')
-//        .fillColor('#ffffff')
-//        .rect(50, tableTop, 500, 20).fill('#2c5aa0')
-//        .fillColor('#ffffff')
-//        .text('Description', 60, tableTop + 5)
-//        .text('Size', 250, tableTop + 5)
-//        .text('Color', 320, tableTop + 5)
-//        .text('Qty', 380, tableTop + 5)
-//        .text('Unit Price', 420, tableTop + 5)
-//        .text('Amount', 480, tableTop + 5, { align: 'right' });
-    
-//     // Items Table Rows
-//     let y = tableTop + 25;
-//     doc.fillColor('#000000').font('Helvetica');
-    
-//     invoice.items.forEach((item, index) => {
-//       if (y > 700) { // New page if needed
-//         doc.addPage();
-//         y = 50;
-//       }
-      
-//       const bgColor = index % 2 === 0 ? '#f8f9fa' : '#ffffff';
-//       doc.rect(50, y, 500, 20).fill(bgColor);
-      
-//       doc.fillColor('#000000')
-//          .text(item.productName || 'Product', 60, y + 5)
-//          .text(item.size || '-', 250, y + 5)
-//          .text(item.color || '-', 320, y + 5)
-//          .text(item.quantity.toString(), 380, y + 5)
-//          .text(`₹${item.unitPrice.toFixed(2)}`, 420, y + 5)
-//          .text(`₹${item.totalPrice.toFixed(2)}`, 480, y + 5, { align: 'right' });
-      
-//       y += 20;
-//     });
-    
-//     // Totals
-//     const totalsY = y + 10;
-//     doc.font('Helvetica-Bold')
-//        .text('Subtotal:', 400, totalsY)
-//        .text(`₹${invoice.subtotal.toFixed(2)}`, 480, totalsY, { align: 'right' })
-       
-//        .text('Tax (18%):', 400, totalsY + 15)
-//        .text(`₹${invoice.taxAmount.toFixed(2)}`, 480, totalsY + 15, { align: 'right' })
-       
-//        .text('Total Amount:', 400, totalsY + 30)
-//        .text(`₹${invoice.totalAmount.toFixed(2)}`, 480, totalsY + 30, { align: 'right' });
-    
-//     // Notes & Terms
-//     if (invoice.notes || invoice.terms) {
-//       doc.moveDown(3);
-//       doc.fontSize(10).font('Helvetica-Bold')
-//          .text('Notes & Terms:', 50, doc.y);
-      
-//       doc.font('Helvetica');
-//       if (invoice.notes) {
-//         doc.text(invoice.notes, 50, doc.y + 15, { width: 500 });
-//       }
-//       if (invoice.terms) {
-//         doc.text(invoice.terms, 50, doc.y + 15, { width: 500 });
-//       }
-//     }
-    
-//     // Footer
-//     const footerY = 750;
-//     doc.fontSize(8).font('Helvetica')
-//        .fillColor('#666666')
-//        .text('Thank you for your business!', 50, footerY, { align: 'center' })
-//        .text('Generated on: ' + new Date().toLocaleDateString(), 50, footerY + 10, { align: 'center' });
-    
-//     doc.end();
-    
-//     // Wait for PDF to finish
-//     await new Promise((resolve) => {
-//       doc.on('end', resolve);
-//     });
-    
-//     const pdfBuffer = Buffer.concat(chunks);
-    
-//     return new Response(pdfBuffer, {
-//       headers: {
-//         'Content-Type': 'application/pdf',
-//         'Content-Disposition': `attachment; filename="invoice-${invoice.invoiceNumber}.pdf"`,
-//         'Content-Length': pdfBuffer.length.toString(),
-//       },
-//     });
-    
-//   } catch (error) {
-//     console.error('PDF Generation Error:', error);
-//     return NextResponse.json({ 
-//       success: false,
-//       error: 'Failed to generate PDF' 
-//     }, { status: 500 });
-//   }
-// }
-
-
-
-
-
 // app/api/invoices/[id]/pdf/route.js
 import { NextResponse } from 'next/server';
 import { getServerSession } from '@/lib/auth';
@@ -613,8 +403,8 @@ function generateInvoiceHTML(invoice) {
                                 ` : 'Standard'}
                             </td>
                             <td>${item.quantity}</td>
-                            <td>₹${item.unitPrice.toFixed(2)}</td>
-                            <td class="text-right">₹${item.totalPrice.toFixed(2)}</td>
+                            <td>₨${item.unitPrice.toFixed(2)}</td>
+                            <td class="text-right">₨${item.totalPrice.toFixed(2)}</td>
                         </tr>
                     `).join('')}
                 </tbody>
@@ -624,15 +414,15 @@ function generateInvoiceHTML(invoice) {
         <div class="totals-section">
             <div class="total-row">
                 <span>Subtotal:</span>
-                <span><strong>₹${invoice.subtotal.toFixed(2)}</strong></span>
+                <span><strong>₨${invoice.subtotal.toFixed(2)}</strong></span>
             </div>
             <div class="total-row">
                 <span>Tax (18%):</span>
-                <span><strong>₹${invoice.taxAmount.toFixed(2)}</strong></span>
+                <span><strong>₨${invoice.taxAmount.toFixed(2)}</strong></span>
             </div>
             <div class="total-row final">
                 <span>GRAND TOTAL:</span>
-                <span>₹${invoice.totalAmount.toFixed(2)}</span>
+                <span>₨${invoice.totalAmount.toFixed(2)}</span>
             </div>
         </div>
 

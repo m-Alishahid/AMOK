@@ -5,7 +5,7 @@
 // import { ChevronLeft, X } from "lucide-react"
 
 // interface OrderDetailsSheetProps {
-//   order: any
+//   order: Order | null
 //   isOpen: boolean
 //   onClose: () => void
 //   onStatusUpdate: (orderId: string, newStatus: string) => void
@@ -269,13 +269,87 @@
 
 
 "use client"
-
-import { useState } from "react"
+import Image from "next/image"
+import React, { useState } from "react"
 import { orderService } from "@/services/orderService"
 import { ChevronLeft, X, Package, Truck, CheckCircle, Clock, Ban } from "lucide-react"
 
+interface OrderItem {
+  productSnapshot: {
+    name: string
+    sku?: string
+    thumbnail?: string
+    originalStock?: number
+  }
+  variant: {
+    size?: string
+    color?: string
+  }
+  quantity: number
+  unitPrice: number
+  totalPrice: number
+  isReturned?: boolean
+  returnReason?: string
+}
+
+interface OrderReturn {
+  quantity: number
+  reason: string
+  status: string
+  refundAmount?: number
+}
+
+interface Order {
+  _id: string
+  status: string
+  orderNumber: string
+  createdAt: string
+  payment?: {
+    status: string
+    method: string
+    amount?: number
+    codDetails?: {
+      collectedAmount: number
+    }
+  }
+  pricing?: {
+    subtotal: number
+    discount: number
+    shipping: number
+    tax: number
+    grandTotal: number
+  }
+  shippingAddress?: {
+    fullName: string
+    email: string
+    phone: string
+    addressLine1: string
+    addressLine2?: string
+    city: string
+    state: string
+    pincode: string
+    country: string
+  }
+  items?: OrderItem[]
+  timeline?: {
+    orderedAt?: string
+    confirmedAt?: string
+    shippedAt?: string
+    deliveredAt?: string
+  }
+  shipping?: {
+    method?: string
+    trackingNumber?: string
+    carrier?: string
+    estimatedDelivery?: string
+  }
+  returns?: OrderReturn[]
+  customerEmail?: string
+  customerPhone?: string
+}
+
 interface OrderDetailsSheetProps {
-  order: any
+  order: Order | null
   isOpen: boolean
   onClose: () => void
   onStatusUpdate: (orderId: string, newStatus: string) => void
@@ -303,7 +377,7 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
 
   // ✅ Simple Status Colors - Easy to Understand
   const getStatusColor = (status: string) => {
-    const statusMap: any = {
+    const statusMap: Record<string, string> = {
       'pending': 'bg-yellow-50 text-yellow-700 border-yellow-200',
       'confirmed': 'bg-blue-50 text-blue-700 border-blue-200',
       'processing': 'bg-purple-50 text-purple-700 border-purple-200',
@@ -317,19 +391,19 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
   }
 
   // ✅ Simple Payment Status
-  const getPaymentStatus = (payment: any) => {
+  const getPaymentStatus = (payment?: Record<string, unknown>) => {
     if (!payment) return { text: 'Pending', color: 'text-orange-600' }
-    
+
     if (payment.status === 'completed') return { text: 'Paid', color: 'text-green-600' }
     if (payment.status === 'failed') return { text: 'Failed', color: 'text-red-600' }
     if (payment.method === 'cod' && payment.status !== 'completed') return { text: 'Cash on Delivery', color: 'text-blue-600' }
-    
+
     return { text: 'Pending', color: 'text-orange-600' }
   }
 
   // ✅ Status Icons for Better Understanding
   const getStatusIcon = (status: string) => {
-    const iconMap: any = {
+    const iconMap: Record<string, React.ReactElement> = {
       'pending': <Clock className="w-4 h-4" />,
       'confirmed': <CheckCircle className="w-4 h-4" />,
       'processing': <Package className="w-4 h-4" />,
@@ -346,19 +420,21 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
   }
 
   // ✅ Get readable status text
-  const getStatusText = (status: string) => {
-    const statusMap: any = {
-      'pending': 'Pending',
-      'confirmed': 'Confirmed',
-      'processing': 'Processing',
-      'shipped': 'Shipped',
-      'delivered': 'Delivered',
-      'cancelled': 'Cancelled',
-      'refunded': 'Refunded',
-      'returned': 'Returned'
-    }
-    return statusMap[status] || status
-  }
+ const getStatusText = (status: string): string => {
+  const statusMap: Record<string, string> = {
+    pending: 'Pending',
+    confirmed: 'Confirmed',
+    processing: 'Processing',
+    shipped: 'Shipped',
+    delivered: 'Delivered',
+    cancelled: 'Cancelled',
+    refunded: 'Refunded',
+    returned: 'Returned',
+  };
+
+  return statusMap[status] || status;
+};
+
 
   if (!isOpen || !order) return null
 
@@ -466,7 +542,7 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
           <div>
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Items Ordered</h3>
             <div className="space-y-4">
-              {order.items?.map((item: any, index: number) => (
+{order.items?.map((item: OrderItem, index: number) => (
                 <div
                   key={index}
                   className="flex gap-4 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
@@ -474,11 +550,13 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
                   {/* Product Image */}
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-lg flex items-center justify-center flex-shrink-0">
                     {item.productSnapshot?.thumbnail ? (
-                      <img 
-                        src={item.productSnapshot.thumbnail} 
-                        alt={item.productSnapshot?.name}
-                        className="w-full h-full object-cover rounded-lg"
-                      />
+                     <Image
+  src={item.productSnapshot.thumbnail}
+  alt={item.productSnapshot?.name || "Product image"}
+  width={300}       // Required
+  height={300}      // Required
+  className="w-full h-full object-cover rounded-lg"
+/>
                     ) : (
                       <span className="text-2xl">📦</span>
                     )}
@@ -543,7 +621,7 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
                 <span className="font-medium">{formatPrice(order.pricing?.subtotal || 0)}</span>
               </div>
               
-              {order.pricing?.discount > 0 && (
+              {(order.pricing?.discount ?? 0) > 0 && (
                 <div className="flex justify-between text-gray-700">
                   <span>Discount</span>
                   <span className="font-medium text-green-600">
@@ -557,7 +635,7 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
                 <span className="font-medium">{formatPrice(order.pricing?.shipping || 0)}</span>
               </div>
               
-              {order.pricing?.tax > 0 && (
+              {(order.pricing?.tax ?? 0) > 0 && (
                 <div className="flex justify-between text-gray-700">
                   <span>Tax</span>
                   <span className="font-medium">{formatPrice(order.pricing?.tax || 0)}</span>
@@ -577,9 +655,9 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
                   <p className="text-sm text-blue-700 font-medium">
                     💰 Cash on Delivery: {formatPrice(order.payment?.amount || order.pricing?.grandTotal || 0)}
                   </p>
-                  {order.payment?.codDetails?.collectedAmount > 0 && (
+                  {(order.payment?.codDetails?.collectedAmount ?? 0) > 0 && (
                     <p className="text-sm text-green-600 mt-1">
-                      ✅ Collected: {formatPrice(order.payment.codDetails.collectedAmount)}
+                      ✅ Collected: {formatPrice(order.payment?.codDetails?.collectedAmount ?? 0)}
                     </p>
                   )}
                 </div>
@@ -678,7 +756,8 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
                 { value: 'processing', label: 'Processing', color: 'bg-purple-500' },
                 { value: 'shipped', label: 'Shipped', color: 'bg-orange-500' },
                 { value: 'delivered', label: 'Delivered', color: 'bg-green-500' },
-                { value: 'cancelled', label: 'Cancel', color: 'bg-red-500' }
+                { value: 'cancelled', label: 'Cancel', color: 'bg-red-500' },
+                { value: 'returned', label: 'Returned', color: 'bg-pink-500' }
               ].map((status) => (
                 <button
                   key={status.value}
@@ -704,7 +783,7 @@ export function OrderDetailsSheet({ order, isOpen, onClose, onStatusUpdate }: Or
             <div className="border-t border-gray-200 pt-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-4">Return Requests</h3>
               <div className="space-y-3">
-                {order.returns.map((returnItem: any, index: number) => (
+                {order.returns.map((returnItem: OrderReturn, index: number) => (
                   <div key={index} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start">
                       <div>

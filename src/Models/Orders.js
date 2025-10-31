@@ -619,14 +619,22 @@ orderSchema.methods.approveReturn = async function(returnId, refundAmount = null
   if (!returnItem) {
     throw new Error('Return request not found');
   }
-  
+
   returnItem.status = 'approved';
   returnItem.processedAt = new Date();
-  
+
   if (refundAmount) {
     returnItem.refundAmount = refundAmount;
   }
-  
+
+  // Find the corresponding order item and mark it as returned
+  const orderItem = this.items.id(returnItem.itemId);
+  if (orderItem) {
+    orderItem.isReturned = true;
+    orderItem.returnReason = returnItem.reason;
+    orderItem.returnedAt = new Date();
+  }
+
   // Restore stock for returned item
   const Product = mongoose.model('Product');
   const product = await Product.findById(returnItem.product);
@@ -635,8 +643,46 @@ orderSchema.methods.approveReturn = async function(returnId, refundAmount = null
       returnItem.product,
       { $inc: { sales: -returnItem.quantity } }
     );
+
+    // Also update variant stock if needed
+    const result = await Product.updateOne(
+      {
+        _id: returnItem.product,
+        'variants.size': orderItem?.variant?.size || 'Standard',
+        'variants.colors.color': orderItem?.variant?.color || 'Standard'
+      },
+      {
+        $inc: {
+          'variants.$[v].colors.$[c].stock': returnItem.quantity,
+          totalStock: returnItem.quantity
+        }
+      },
+      {
+        arrayFilters: [
+          { 'v.size': orderItem?.variant?.size || 'Standard' },
+          { 'c.color': orderItem?.variant?.color || 'Standard' }
+        ]
+      }
+    );
+
+    // If variant update fails, update total stock
+    if (result.nModified === 0) {
+      await Product.findByIdAndUpdate(
+        returnItem.product,
+        { $inc: { totalStock: returnItem.quantity } }
+      );
+    }
   }
-  
+
+  // Update order status if all items are returned
+  const allReturned = this.items.every(item => item.isReturned);
+  if (allReturned) {
+    this.status = 'returned';
+    this.timeline.returnedAt = new Date();
+  } else if (this.returns.some(r => r.status === 'approved')) {
+    this.status = 'partially_returned';
+  }
+
   await this.save();
 };
 

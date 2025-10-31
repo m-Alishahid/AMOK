@@ -211,7 +211,6 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Discount from '@/Models/Discount';
-import Product from '@/Models/Product';
 import mongoose from 'mongoose';
 
 // GET all discounts

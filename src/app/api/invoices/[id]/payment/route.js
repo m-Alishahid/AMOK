@@ -15,7 +15,7 @@ export async function POST(request, { params }) {
     }
 
     const { id } = params;
-    const { amount, paymentMethod, notes } = await request.json();
+    // const { amount, paymentMethod, notes } = await request.json();
 
     const invoice = await Invoice.findById(id);
     if (!invoice) {

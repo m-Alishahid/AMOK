@@ -690,15 +690,15 @@ export default function DiscountManager() {
           <p className="text-blue-700 mt-1">Create and manage product discounts and promotions</p>
         </div>
         <div className="flex gap-3">
-          <Button
-            onClick={updateDiscountStatuses}
-            disabled={loading}
-            variant="default"
-            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {loading ? 'Updating...' : 'Check Expiry'}
-          </Button>
+          {/* <Button */}
+            // onClick={updateDiscountStatuses}
+            // disabled={loading}
+            // variant="default"
+            // className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
+          {/* > */}
+            {/* <RefreshCw className="h-4 w-4" />
+            {loading ? 'Updating...' : 'Check Expiry'} */}
+          {/* </Button> */}
           <Button
             onClick={() => setShowForm(true)}
             className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"

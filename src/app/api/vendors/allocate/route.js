@@ -132,7 +132,7 @@ export async function POST(request) {
         if (profitPerPiece < 0) {
           failedAllocations.push({
             product: product.name,
-            error: `Vendor price (₹${vendorPrice}) must be greater than cost price (₹${costPrice})`
+            error: `Vendor price (₨${vendorPrice}) must be greater than cost price (₨${costPrice})`
           });
           continue;
         }
@@ -336,7 +336,7 @@ export async function POST(request) {
       totalProfit: totalProfit,
       status: 'Paid',
       createdBy: session.user.id,
-      notes: `Stock allocation for ${vendor.companyName} - Total Profit: ₹${totalProfit}`,
+      notes: `Stock allocation for ${vendor.companyName} - Total Profit: ₨${totalProfit}`,
       dueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     });
 

@@ -7,17 +7,15 @@ export const CURRENCY_CONFIG = {
   name: 'Pakistani Rupee',
   locale: 'en-PK', // Pakistani locale for formatting
   decimalDigits: 2,
-  
+
   // Formatting options
   format: (amount) => {
-    return new Intl.NumberFormat('en-PK', {
-      style: 'currency',
-      currency: 'PKR',
+    return `₨${amount.toLocaleString('en-PK', {
       minimumFractionDigits: 0,
       maximumFractionDigits: 2,
-    }).format(amount);
+    })}`;
   },
-  
+
   // Simple format without currency symbol (agar chahiye)
   formatWithoutSymbol: (amount) => {
     return new Intl.NumberFormat('en-PK').format(amount);

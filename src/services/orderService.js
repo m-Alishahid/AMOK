@@ -61,6 +61,11 @@ export const orderService = {
     return response.data;
   },
 
+  updateReturnStatus: async (id, returnId, status, notes = null) => {
+    const response = await api.patch(`/orders/${id}/return/${returnId}/status`, { status, notes });
+    return response.data;
+  },
+
   // ✅ UPDATE TRACKING INFO
   updateTracking: async (id, trackingData) => {
     const response = await api.patch(`/orders/${id}/tracking`, trackingData);

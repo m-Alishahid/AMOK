@@ -4,7 +4,7 @@ import { getUniversalSession, isAdmin } from '@/lib/auth';
 import Vendor from '@/Models/Vendor';
 import User from '@/Models/User';
 import connectDB from '@/lib/mongodb';
-import Product from '@/Models/Product';
+// import Product from '@/Models/Product';
 
 // GET vendor by ID
 export async function GET(request, { params }) {
