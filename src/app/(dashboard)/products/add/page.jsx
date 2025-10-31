@@ -1,166 +1,167 @@
-"use client";
+// "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { categoryService } from '@/services/categoryService';
-import { productService } from '@/services/productService';
+// import { useState, useEffect } from "react";
+// import { useRouter } from "next/navigation";
+// import { categoryService } from '@/services/categoryService';
+// import { productService } from '@/services/productService';
+// import { formatCurrency, getCurrencySymbol } from '@/lib/currencyUtils';
 
-// Product Preview Component
-const ProductPreview = ({ formData }) => {
-  const { name, description, costPrice, salePrice, discountedPrice, variants, images, thumbnailIndex, category } = formData;
+// // Product Preview Component
+// const ProductPreview = ({ formData }) => {
+//   const { name, description, costPrice, salePrice, discountedPrice, variants, images, thumbnailIndex, category } = formData;
 
-  const [selectedSize, setSelectedSize] = useState('M');
-  const [selectedColor, setSelectedColor] = useState('');
+//   const [selectedSize, setSelectedSize] = useState('M');
+//   const [selectedColor, setSelectedColor] = useState('');
 
-  // Calculate prices and profit
-  const finalPrice = discountedPrice > 0 ? discountedPrice : salePrice;
-  const profit = finalPrice - costPrice;
-  const discountPercentage = discountedPrice > 0 ? Math.round(((salePrice - discountedPrice) / salePrice) * 100) : 0;
+//   // Calculate prices and profit
+//   const finalPrice = discountedPrice > 0 ? discountedPrice : salePrice;
+//   const profit = finalPrice - costPrice;
+//   const discountPercentage = discountedPrice > 0 ? Math.round(((salePrice - discountedPrice) / salePrice) * 100) : 0;
 
-  // Image logic
-  let previewImage = 'https://images.unsplash.com/photo-1571402325950-891d06b69460?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0OTI3MDV8MHwxfHNlYXJjaHw1fHxibGFjayUyMHRzaGlydHxlbnwwfHx8fDE3MTgyNTg5MjF8MA&ixlib=rb-4.0.3&q=80&w=400';
+//   // Image logic
+//   let previewImage = 'https://images.unsplash.com/photo-1571402325950-891d06b69460?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0OTI3MDV8MHwxfHNlYXJjaHw1fHxibGFjayUyMHRzaGlydHxlbnwwfHx8fDE3MTgyNTg5MjF8MA&ixlib=rb-4.0.3&q=80&w=400';
 
-  if (images.length > 0) {
-    const imageToShow = thumbnailIndex !== -1 && images[thumbnailIndex] ? images[thumbnailIndex] : images[0];
-    if (typeof imageToShow === 'string') {
-      previewImage = imageToShow;
-    } else {
-      previewImage = URL.createObjectURL(imageToShow);
-    }
-  }
+//   if (images.length > 0) {
+//     const imageToShow = thumbnailIndex !== -1 && images[thumbnailIndex] ? images[thumbnailIndex] : images[0];
+//     if (typeof imageToShow === 'string') {
+//       previewImage = imageToShow;
+//     } else {
+//       previewImage = URL.createObjectURL(imageToShow);
+//     }
+//   }
 
-  // Variant logic
-  const availableSizes = variants.filter(v => v.size).map(v => v.size);
-  const defaultSize = availableSizes.length > 0 ? availableSizes[0] : 'M';
-  const selectedVariant = variants.find(v => v.size === selectedSize) || variants.find(v => v.size) || variants[0];
-  const availableColors = selectedVariant?.colors.filter(c => c.color) || [];
+//   // Variant logic
+//   const availableSizes = variants.filter(v => v.size).map(v => v.size);
+//   const defaultSize = availableSizes.length > 0 ? availableSizes[0] : 'M';
+//   const selectedVariant = variants.find(v => v.size === selectedSize) || variants.find(v => v.size) || variants[0];
+//   const availableColors = selectedVariant?.colors.filter(c => c.color) || [];
 
-  useEffect(() => {
-    if (availableColors.length > 0 && !availableColors.some(c => c.color === selectedColor)) {
-      setSelectedColor(availableColors[0].color);
-    } else if (availableColors.length === 0) {
-      setSelectedColor('');
-    }
-  }, [selectedSize, availableColors, selectedColor]);
+//   useEffect(() => {
+//     if (availableColors.length > 0 && !availableColors.some(c => c.color === selectedColor)) {
+//       setSelectedColor(availableColors[0].color);
+//     } else if (availableColors.length === 0) {
+//       setSelectedColor('');
+//     }
+//   }, [selectedSize, availableColors, selectedColor]);
 
-  useEffect(() => {
-    if (!availableSizes.includes(selectedSize)) {
-      setSelectedSize(defaultSize);
-    }
-  }, [defaultSize, availableSizes, selectedSize]);
+//   useEffect(() => {
+//     if (!availableSizes.includes(selectedSize)) {
+//       setSelectedSize(defaultSize);
+//     }
+//   }, [defaultSize, availableSizes, selectedSize]);
 
-  const defaultName = "Product Name Preview";
-  const defaultDescription = "Short description will appear here...";
+//   const defaultName = "Product Name Preview";
+//   const defaultDescription = "Short description will appear here...";
 
-  return (
-    <div className="p-6 border border-gray-200 rounded-xl shadow-lg bg-white sticky top-4">
-      <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Live Preview</h2>
+//   return (
+//     <div className="p-6 border border-gray-200 rounded-xl shadow-lg bg-white sticky top-4">
+//       <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Live Preview</h2>
 
-      {/* Product Image */}
-      <div className="w-full h-80 bg-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200 flex items-center justify-center">
-        {images.length > 0 ? (
-          <img
-            src={previewImage}
-            alt={name || defaultName}
-            className="w-full h-full object-cover"
-          />
-        ) : (
-           <p className="text-gray-400 text-sm">Upload an image to see the preview</p>
-        )}
-      </div>
+//       {/* Product Image */}
+//       <div className="w-full h-80 bg-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200 flex items-center justify-center">
+//         {images.length > 0 ? (
+//           <img
+//             src={previewImage}
+//             alt={name || defaultName}
+//             className="w-full h-full object-cover"
+//           />
+//         ) : (
+//            <p className="text-gray-400 text-sm">Upload an image to see the preview</p>
+//         )}
+//       </div>
 
-      {/* Product Info */}
-      <div className="flex justify-between items-start mb-4">
-        <h3 className="text-2xl font-bold text-gray-900">{name || defaultName}</h3>
-        <div className="text-right">
-          {discountedPrice > 0 && (
-            <p className="text-lg text-gray-500 line-through">${salePrice}</p>
-          )}
-          <p className="text-2xl font-bold text-blue-600">
-            ${finalPrice}
-          </p>
-          {discountPercentage > 0 && (
-            <p className="text-sm text-green-600 font-semibold">
-              {discountPercentage}% OFF
-            </p>
-          )}
-        </div>
-      </div>
+//       {/* Product Info */}
+//       <div className="flex justify-between items-start mb-4">
+//         <h3 className="text-2xl font-bold text-gray-900">{name || defaultName}</h3>
+//         <div className="text-right">
+//           {discountedPrice > 0 && (
+//             <p className="text-lg text-gray-500 line-through">{formatCurrency(salePrice)}</p>
+//           )}
+//           <p className="text-2xl font-bold text-blue-600">
+//             {formatCurrency(finalPrice)}
+//           </p>
+//           {discountPercentage > 0 && (
+//             <p className="text-sm text-green-600 font-semibold">
+//               {discountPercentage}% OFF
+//             </p>
+//           )}
+//         </div>
+//       </div>
 
-      <p className="text-sm text-gray-500 mb-4">{(description || defaultDescription).split('\n')[0]}</p>
+//       <p className="text-sm text-gray-500 mb-4">{(description || defaultDescription).split('\n')[0]}</p>
 
-      {/* Profit Display */}
-      <div className="bg-gray-50 p-3 rounded-lg mb-4">
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Cost Price:</span>
-          <span className="font-medium">${costPrice || 0}</span>
-        </div>
-        <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Profit:</span>
-          <span className={`font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-            ${profit || 0}
-          </span>
-        </div>
-        {profit > 0 && (
-          <div className="flex justify-between text-sm">
-            <span className="text-gray-600">Profit Margin:</span>
-            <span className="font-medium text-green-600">
-              {Math.round((profit / costPrice) * 100)}%
-            </span>
-          </div>
-        )}
-      </div>
+//       {/* Profit Display */}
+//       <div className="bg-gray-50 p-3 rounded-lg mb-4">
+//         <div className="flex justify-between text-sm">
+//           <span className="text-gray-600">Cost Price:</span>
+//           <span className="font-medium">Rs.{costPrice || 0}</span>
+//         </div>
+//         <div className="flex justify-between text-sm">
+//           <span className="text-gray-600">Profit:</span>
+//           <span className={`font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+//             ${profit || 0}
+//           </span>
+//         </div>
+//         {profit > 0 && (
+//           <div className="flex justify-between text-sm">
+//             <span className="text-gray-600">Profit Margin:</span>
+//             <span className="font-medium text-green-600">
+//               {Math.round((profit / costPrice) * 100)}%
+//             </span>
+//           </div>
+//         )}
+//       </div>
 
-      {/* Variants Preview */}
-      <div className="space-y-4 mb-6">
-        {/* Size Selector */}
-        {availableSizes.length > 0 && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-2">Size</p>
-            <div className="flex space-x-2 flex-wrap">
-              {availableSizes.map(size => (
-                <button
-                  key={size}
-                  onClick={() => setSelectedSize(size)}
-                  className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
-                    size === selectedSize ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
+//       {/* Variants Preview */}
+//       <div className="space-y-4 mb-6">
+//         {/* Size Selector */}
+//         {availableSizes.length > 0 && (
+//           <div>
+//             <p className="text-sm font-semibold text-gray-700 mb-2">Size</p>
+//             <div className="flex space-x-2 flex-wrap">
+//               {availableSizes.map(size => (
+//                 <button
+//                   key={size}
+//                   onClick={() => setSelectedSize(size)}
+//                   className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
+//                     size === selectedSize ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+//                   }`}
+//                 >
+//                   {size}
+//                 </button>
+//               ))}
+//             </div>
+//           </div>
+//         )}
 
-        {/* Color Selector */}
-        {availableColors.length > 0 && (
-          <div>
-            <p className="text-sm font-semibold text-gray-700 mb-2">Color</p>
-            <div className="flex space-x-2 flex-wrap">
-              {availableColors.map(color => (
-                <button
-                  key={color.color}
-                  onClick={() => setSelectedColor(color.color)}
-                  className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
-                    color.color === selectedColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                  }`}
-                >
-                  {color.color}
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+//         {/* Color Selector */}
+//         {availableColors.length > 0 && (
+//           <div>
+//             <p className="text-sm font-semibold text-gray-700 mb-2">Color</p>
+//             <div className="flex space-x-2 flex-wrap">
+//               {availableColors.map(color => (
+//                 <button
+//                   key={color.color}
+//                   onClick={() => setSelectedColor(color.color)}
+//                   className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
+//                     color.color === selectedColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+//                   }`}
+//                 >
+//                   {color.color}
+//                 </button>
+//               ))}
+//             </div>
+//           </div>
+//         )}
+//       </div>
 
-      {/* Action Button */}
-      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200">
-        Buy Now
-      </button>
-    </div>
-  );
-};
+//       {/* Action Button */}
+//       <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200">
+//         Buy Now
+//       </button>
+//     </div>
+//   );
+// };
 
 // // Main Add Product Component
 // export default function AddProduct() {
@@ -171,6 +172,10 @@ const ProductPreview = ({ formData }) => {
 //     salePrice: "",
 //     discountedPrice: "",
 //     category: "",
+//     // NAYE FIELDS ADD KIYE
+//     requiresSize: false,
+//     requiresColor: false,
+//     hasVariants: false,
 //     variants: [{ size: "", colors: [{ color: "", stock: "" }], fabric: "" }],
 //     images: [],
 //     thumbnailIndex: 0,
@@ -179,7 +184,6 @@ const ProductPreview = ({ formData }) => {
 
 //   const [loading, setLoading] = useState(false);
 //   const [categories, setCategories] = useState([]);
-//   const [selectedCategory, setSelectedCategory] = useState(null);
 //   const [showPreview, setShowPreview] = useState(true);
 //   const router = useRouter();
 
@@ -198,16 +202,6 @@ const ProductPreview = ({ formData }) => {
 //       console.error('Failed to load categories:', error);
 //     }
 //   };
-
-//   // Update selected category when category changes
-//   useEffect(() => {
-//     if (formData.category) {
-//       const category = categories.find(cat => cat._id === formData.category);
-//       setSelectedCategory(category);
-//     } else {
-//       setSelectedCategory(null);
-//     }
-//   }, [formData.category, categories]);
 
 //   // Calculate total stock
 //   useEffect(() => {
@@ -229,9 +223,11 @@ const ProductPreview = ({ formData }) => {
 //   }, [formData.discountedPrice, formData.salePrice]);
 
 //   const handleChange = (e) => {
-//     const { name, value } = e.target;
+//     const { name, value, type, checked } = e.target;
     
-//     if (name === "category") {
+//     if (type === 'checkbox') {
+//       setFormData(prev => ({ ...prev, [name]: checked }));
+//     } else if (name === "category") {
 //       setFormData({ ...formData, category: value });
 //     } else if (name.startsWith("variants.")) {
 //       const parts = name.split(".");
@@ -323,6 +319,10 @@ const ProductPreview = ({ formData }) => {
 //       formDataToSend.append('salePrice', formData.salePrice);
 //       formDataToSend.append('discountedPrice', formData.discountedPrice || '');
 //       formDataToSend.append('category', formData.category);
+//       // NAYE FIELDS ADD KIYE
+//       formDataToSend.append('requiresSize', formData.requiresSize);
+//       formDataToSend.append('requiresColor', formData.requiresColor);
+//       formDataToSend.append('hasVariants', formData.hasVariants);
 //       formDataToSend.append('variants', JSON.stringify(formData.variants));
 //       formDataToSend.append('thumbnailIndex', formData.thumbnailIndex);
 //       formDataToSend.append('status', formData.status);
@@ -437,6 +437,54 @@ const ProductPreview = ({ formData }) => {
 //                   </div>
 //                 </div>
 //               </div>
+
+//               {/* Product Properties Section - YEH NAYA SECTION ADD KIYA */}
+//               <div className="border border-gray-200 rounded-lg p-4">
+//                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Product Properties</h2>
+//                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+//                   <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+//                     <input
+//                       type="checkbox"
+//                       name="requiresSize"
+//                       checked={formData.requiresSize}
+//                       onChange={handleChange}
+//                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+//                     />
+//                     <div>
+//                       <div className="font-medium text-gray-900">Requires Size</div>
+//                       <div className="text-sm text-gray-500">Product has different sizes</div>
+//                     </div>
+//                   </label>
+
+//                   <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+//                     <input
+//                       type="checkbox"
+//                       name="requiresColor"
+//                       checked={formData.requiresColor}
+//                       onChange={handleChange}
+//                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+//                     />
+//                     <div>
+//                       <div className="font-medium text-gray-900">Requires Color</div>
+//                       <div className="text-sm text-gray-500">Product has different colors</div>
+//                     </div>
+//                   </label>
+
+//                   <label className="flex items-center space-x-3 p-4 border border-gray-200 rounded-lg hover:bg-gray-50 cursor-pointer">
+//                     <input
+//                       type="checkbox"
+//                       name="hasVariants"
+//                       checked={formData.hasVariants}
+//                       onChange={handleChange}
+//                       className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+//                     />
+//                     <div>
+//                       <div className="font-medium text-gray-900">Has Variants</div>
+//                       <div className="text-sm text-gray-500">Product has multiple variants</div>
+//                     </div>
+//                   </label>
+//                 </div>
+//               </div>
               
 //               {/* Pricing Information */}
 //               <div className="border border-gray-200 rounded-lg p-4">
@@ -444,7 +492,7 @@ const ProductPreview = ({ formData }) => {
 //                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
 //                   <div>
 //                     <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700 mb-1">
-//                       Cost Price ($)
+//                       Cost Price (Rs.)
 //                     </label>
 //                     <input
 //                       type="number"
@@ -462,7 +510,7 @@ const ProductPreview = ({ formData }) => {
 
 //                   <div>
 //                     <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700 mb-1">
-//                       Sale Price ($)
+//                       Sale Price (Rs.)
 //                     </label>
 //                     <input
 //                       type="number"
@@ -480,7 +528,7 @@ const ProductPreview = ({ formData }) => {
 
 //                   <div>
 //                     <label htmlFor="discountedPrice" className="block text-sm font-medium text-gray-700 mb-1">
-//                       Discounted Price ($)
+//                       Discounted Price (Rs.)
 //                     </label>
 //                     <input
 //                       type="number"
@@ -525,24 +573,6 @@ const ProductPreview = ({ formData }) => {
 //                     ))}
 //                   </select>
 //                 </div>
-
-//                 {/* Category Properties Info */}
-//                 {selectedCategory && (
-//                   <div className="mt-4 p-3 bg-blue-50 rounded-lg">
-//                     <h3 className="text-sm font-semibold text-blue-800 mb-2">Category Properties:</h3>
-//                     <div className="flex space-x-4 text-sm text-blue-700">
-//                       {selectedCategory.requiresSize && (
-//                         <span className="bg-blue-100 px-2 py-1 rounded">Requires Size</span>
-//                       )}
-//                       {selectedCategory.requiresColor && (
-//                         <span className="bg-blue-100 px-2 py-1 rounded">Requires Color</span>
-//                       )}
-//                       {selectedCategory.hasVariants && (
-//                         <span className="bg-blue-100 px-2 py-1 rounded">Has Variants</span>
-//                       )}
-//                     </div>
-//                   </div>
-//                 )}
 //               </div>
               
 //               {/* Product Images */}
@@ -593,7 +623,7 @@ const ProductPreview = ({ formData }) => {
 //               </div>
 
 //               {/* Product Variants - Conditionally Rendered */}
-//               {selectedCategory?.hasVariants && (
+//               {formData.hasVariants && (
 //                 <div className="border border-gray-200 rounded-lg p-4">
 //                   <h2 className="text-xl font-semibold text-gray-800 mb-4">Product Variants</h2>
 //                   <div className="space-y-6">
@@ -605,7 +635,7 @@ const ProductPreview = ({ formData }) => {
 //                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           
 //                           {/* Size - Conditionally Rendered */}
-//                           {selectedCategory?.requiresSize && (
+//                           {formData.requiresSize && (
 //                             <div>
 //                               <label htmlFor={`variants.${index}.size`} className="block text-sm font-medium text-gray-700 mb-1">
 //                                 Size
@@ -640,7 +670,7 @@ const ProductPreview = ({ formData }) => {
 //                           </div>
                           
 //                           {/* Colors and Stock - Conditionally Rendered */}
-//                           {selectedCategory?.requiresColor && (
+//                           {formData.requiresColor && (
 //                             <div className="sm:col-span-3">
 //                               <label className="block text-sm font-medium text-gray-700 mb-2">
 //                                 Colors & Stock
@@ -728,6 +758,171 @@ const ProductPreview = ({ formData }) => {
 
 
 
+"use client";
+
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { categoryService } from '@/services/categoryService';
+import { productService } from '@/services/productService';
+import { formatCurrency, getCurrencySymbol } from '@/lib/currencyUtils';
+
+// Product Preview Component
+const ProductPreview = ({ formData }) => {
+  const { name, description, costPrice, salePrice, discountedPrice, variants, images, thumbnailIndex, category } = formData;
+
+  const [selectedSize, setSelectedSize] = useState('M');
+  const [selectedColor, setSelectedColor] = useState('');
+
+  // Calculate prices and profit using currency utils
+  const finalPrice = discountedPrice > 0 ? discountedPrice : salePrice;
+  const profit = finalPrice - costPrice;
+  const discountPercentage = discountedPrice > 0 ? Math.round(((salePrice - discountedPrice) / salePrice) * 100) : 0;
+
+  // Image logic
+  let previewImage = 'https://images.unsplash.com/photo-1571402325950-891d06b69460?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w0OTI3MDV8MHwxfHNlYXJjaHw1fHxibGFjayUyMHRzaGlydHxlbnwwfHx8fDE3MTgyNTg5MjF8MA&ixlib=rb-4.0.3&q=80&w=400';
+
+  if (images.length > 0) {
+    const imageToShow = thumbnailIndex !== -1 && images[thumbnailIndex] ? images[thumbnailIndex] : images[0];
+    if (typeof imageToShow === 'string') {
+      previewImage = imageToShow;
+    } else {
+      previewImage = URL.createObjectURL(imageToShow);
+    }
+  }
+
+  // Variant logic
+  const availableSizes = variants.filter(v => v.size).map(v => v.size);
+  const defaultSize = availableSizes.length > 0 ? availableSizes[0] : 'M';
+  const selectedVariant = variants.find(v => v.size === selectedSize) || variants.find(v => v.size) || variants[0];
+  const availableColors = selectedVariant?.colors.filter(c => c.color) || [];
+
+  useEffect(() => {
+    if (availableColors.length > 0 && !availableColors.some(c => c.color === selectedColor)) {
+      setSelectedColor(availableColors[0].color);
+    } else if (availableColors.length === 0) {
+      setSelectedColor('');
+    }
+  }, [selectedSize, availableColors, selectedColor]);
+
+  useEffect(() => {
+    if (!availableSizes.includes(selectedSize)) {
+      setSelectedSize(defaultSize);
+    }
+  }, [defaultSize, availableSizes, selectedSize]);
+
+  const defaultName = "Product Name Preview";
+  const defaultDescription = "Short description will appear here...";
+
+  return (
+    <div className="p-6 border border-gray-200 rounded-xl shadow-lg bg-white sticky top-4">
+      <h2 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Live Preview</h2>
+
+      {/* Product Image */}
+      <div className="w-full h-80 bg-gray-100 rounded-lg overflow-hidden mb-4 border border-gray-200 flex items-center justify-center">
+        {images.length > 0 ? (
+          <img
+            src={previewImage}
+            alt={name || defaultName}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+           <p className="text-gray-400 text-sm">Upload an image to see the preview</p>
+        )}
+      </div>
+
+      {/* Product Info */}
+      <div className="flex justify-between items-start mb-4">
+        <h3 className="text-2xl font-bold text-gray-900">{name || defaultName}</h3>
+        <div className="text-right">
+          {discountedPrice > 0 && (
+            <p className="text-lg text-gray-500 line-through">{formatCurrency(salePrice)}</p>
+          )}
+          <p className="text-2xl font-bold text-blue-600">
+            {formatCurrency(finalPrice)}
+          </p>
+          {discountPercentage > 0 && (
+            <p className="text-sm text-green-600 font-semibold">
+              {discountPercentage}% OFF
+            </p>
+          )}
+        </div>
+      </div>
+
+      <p className="text-sm text-gray-500 mb-4">{(description || defaultDescription).split('\n')[0]}</p>
+
+      {/* Profit Display */}
+      <div className="bg-gray-50 p-3 rounded-lg mb-4">
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Cost Price:</span>
+          <span className="font-medium">{formatCurrency(costPrice || 0)}</span>
+        </div>
+        <div className="flex justify-between text-sm">
+          <span className="text-gray-600">Profit:</span>
+          <span className={`font-medium ${profit >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(profit || 0)}
+          </span>
+        </div>
+        {profit > 0 && (
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Profit Margin:</span>
+            <span className="font-medium text-green-600">
+              {Math.round((profit / costPrice) * 100)}%
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Variants Preview */}
+      <div className="space-y-4 mb-6">
+        {/* Size Selector */}
+        {availableSizes.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-2">Size</p>
+            <div className="flex space-x-2 flex-wrap">
+              {availableSizes.map(size => (
+                <button
+                  key={size}
+                  onClick={() => setSelectedSize(size)}
+                  className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
+                    size === selectedSize ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {size}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Color Selector */}
+        {availableColors.length > 0 && (
+          <div>
+            <p className="text-sm font-semibold text-gray-700 mb-2">Color</p>
+            <div className="flex space-x-2 flex-wrap">
+              {availableColors.map(color => (
+                <button
+                  key={color.color}
+                  onClick={() => setSelectedColor(color.color)}
+                  className={`py-1 px-3 border rounded-lg text-sm font-medium transition ${
+                    color.color === selectedColor ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
+                  }`}
+                >
+                  {color.color}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Action Button */}
+      <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 rounded-lg shadow-md transition duration-200">
+        Buy Now
+      </button>
+    </div>
+  );
+};
+
 // Main Add Product Component
 export default function AddProduct() {
   const [formData, setFormData] = useState({
@@ -737,7 +932,6 @@ export default function AddProduct() {
     salePrice: "",
     discountedPrice: "",
     category: "",
-    // NAYE FIELDS ADD KIYE
     requiresSize: false,
     requiresColor: false,
     hasVariants: false,
@@ -824,6 +1018,16 @@ export default function AddProduct() {
     });
   };
 
+  const removeVariant = (variantIndex) => {
+    if (formData.variants.length <= 1) {
+      alert("At least one variant is required");
+      return;
+    }
+    
+    const newVariants = formData.variants.filter((_, index) => index !== variantIndex);
+    setFormData({ ...formData, variants: newVariants });
+  };
+
   const addColor = (variantIndex) => {
     const newVariants = [...formData.variants];
     newVariants[variantIndex].colors.push({ color: "", stock: "" });
@@ -832,6 +1036,10 @@ export default function AddProduct() {
 
   const removeColor = (variantIndex, colorIndex) => {
     const newVariants = [...formData.variants];
+    if (newVariants[variantIndex].colors.length <= 1) {
+      alert("At least one color is required");
+      return;
+    }
     newVariants[variantIndex].colors.splice(colorIndex, 1);
     setFormData({ ...formData, variants: newVariants });
   };
@@ -884,7 +1092,6 @@ export default function AddProduct() {
       formDataToSend.append('salePrice', formData.salePrice);
       formDataToSend.append('discountedPrice', formData.discountedPrice || '');
       formDataToSend.append('category', formData.category);
-      // NAYE FIELDS ADD KIYE
       formDataToSend.append('requiresSize', formData.requiresSize);
       formDataToSend.append('requiresColor', formData.requiresColor);
       formDataToSend.append('hasVariants', formData.hasVariants);
@@ -1003,7 +1210,7 @@ export default function AddProduct() {
                 </div>
               </div>
 
-              {/* Product Properties Section - YEH NAYA SECTION ADD KIYA */}
+              {/* Product Properties Section */}
               <div className="border border-gray-200 rounded-lg p-4">
                 <h2 className="text-xl font-semibold text-gray-800 mb-4">Product Properties</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -1057,7 +1264,7 @@ export default function AddProduct() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <label htmlFor="costPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                      Cost Price ($)
+                      Cost Price ({getCurrencySymbol()})
                     </label>
                     <input
                       type="number"
@@ -1075,7 +1282,7 @@ export default function AddProduct() {
 
                   <div>
                     <label htmlFor="salePrice" className="block text-sm font-medium text-gray-700 mb-1">
-                      Sale Price ($)
+                      Sale Price ({getCurrencySymbol()})
                     </label>
                     <input
                       type="number"
@@ -1093,7 +1300,7 @@ export default function AddProduct() {
 
                   <div>
                     <label htmlFor="discountedPrice" className="block text-sm font-medium text-gray-700 mb-1">
-                      Discounted Price ($)
+                      Discounted Price ({getCurrencySymbol()})
                     </label>
                     <input
                       type="number"
@@ -1190,11 +1397,34 @@ export default function AddProduct() {
               {/* Product Variants - Conditionally Rendered */}
               {formData.hasVariants && (
                 <div className="border border-gray-200 rounded-lg p-4">
-                  <h2 className="text-xl font-semibold text-gray-800 mb-4">Product Variants</h2>
+                  <div className="flex justify-between items-center mb-4">
+                    <h2 className="text-xl font-semibold text-gray-800">Product Variants</h2>
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg shadow-md transition duration-200 flex items-center"
+                    >
+                      <span className="mr-2">+</span> Add Variant
+                    </button>
+                  </div>
                   <div className="space-y-6">
                     {formData.variants.map((variant, index) => (
-                      <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm">
-                        <h3 className="text-lg font-medium text-gray-900 mb-3 border-b pb-2">
+                      <div key={index} className="bg-gray-50 border border-gray-200 rounded-xl p-4 shadow-sm relative">
+                        {/* Delete Variant Button - Only show if more than one variant */}
+                        {formData.variants.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeVariant(index)}
+                            className="absolute top-3 right-3 text-red-500 hover:text-red-700 p-1 bg-white rounded-full shadow-sm"
+                            title="Delete Variant"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                        
+                        <h3 className="text-lg font-medium text-gray-900 mb-3 border-b pb-2 pr-8">
                           Variant {index + 1} ({variant.size || 'New Size'})
                         </h3>
                         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -1265,7 +1495,9 @@ export default function AddProduct() {
                                     <button
                                       type="button"
                                       onClick={() => removeColor(index, colorIndex)}
-                                      className="text-red-500 hover:text-red-700 p-1"
+                                      disabled={variant.colors.length <= 1}
+                                      className={`p-1 ${variant.colors.length <= 1 ? 'text-gray-400 cursor-not-allowed' : 'text-red-500 hover:text-red-700'}`}
+                                      title={variant.colors.length <= 1 ? "At least one color required" : "Remove color"}
                                     >
                                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                                     </button>
@@ -1284,14 +1516,6 @@ export default function AddProduct() {
                         </div>
                       </div>
                     ))}
-
-                    <button
-                      type="button"
-                      onClick={addVariant}
-                      className="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg shadow-md transition duration-200 flex items-center mt-4"
-                    >
-                      <span className="mr-2">+</span> Add Another Variant
-                    </button>
                   </div>
                 </div>
               )}

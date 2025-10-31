@@ -51,16 +51,7 @@ export const CURRENCIES = {
       currency: 'INR',
     }).format(amount)
   },
-  EUR: {
-    symbol: '€',
-    code: 'EUR',
-    name: 'Euro',
-    locale: 'en-EU',
-    format: (amount) => new Intl.NumberFormat('en-EU', {
-      style: 'currency',
-      currency: 'EUR',
-    }).format(amount)
-  }
+ 
 };
 
 // Default currency set karein

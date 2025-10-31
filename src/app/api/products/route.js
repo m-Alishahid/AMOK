@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import Product from '@/Models/Product';
-// import Category from '@/Models/Category';
+import Category from '@/Models/Category';
 import { cloudinaryService } from '@/lib/cloudinary';
 
 // GET all products with filtering, sorting, pagination
