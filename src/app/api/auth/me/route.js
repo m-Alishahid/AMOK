@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import connectDB from '../../../../lib/mongodb';
-import { verifyToken } from '../../../../lib/jwt';
-import User from '../../../../Models/User';
-import Role from '../../../../Models/Role';
+import connectDB from '@/lib/mongodb';
+import { verifyToken } from '@/lib/jwt';
+import User from '@/Models/User';
+import Role from '@/Models/Role';
 
 export async function GET(request) {
   try {

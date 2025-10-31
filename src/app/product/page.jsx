@@ -1,5 +1,6 @@
 "use client";
 
+import '../globals.css';
 import Navbar from '../../components/Navbar';
 import Footer from '../../components/Footer';
 import Link from 'next/link';
@@ -63,7 +64,7 @@ export default function ProductsPage() {
         <main className="flex-grow flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-pink-600 mx-auto"></div>
-            <p className="mt-4 text-lg text-gray-600">Loading products...</p>
+            <p className="mt-4 text-lg text-[var(--text-secondary)]">Loading products...</p>
           </div>
         </main>
         <Footer />
@@ -93,7 +94,7 @@ export default function ProductsPage() {
                 <Link key={category.id} href={category.link} className="bg-gray-50 p-6 rounded-lg shadow-md text-center hover:shadow-lg transition duration-300">
                   <div className="text-6xl mb-4">{category.icon}</div>
                   <h3 className="text-lg font-semibold mb-2">{category.name}</h3>
-                  <p className="text-gray-600">{category.count} items</p>
+                  <p className="text-[var(--text-secondary)]">{category.count} items</p>
                 </Link>
               ))}
             </div>
@@ -106,8 +107,8 @@ export default function ProductsPage() {
             <h2 className="text-3xl font-bold text-center mb-12">Trending Products</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {dummyData.products.slice(0, 4).map(product => (
-                <div key={`trending-${product.id}`} className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
-                  <div className="h-24 flex items-center justify-center mb-4">
+                <div key={`trending-${product.id}`} className="bg-gray-50 p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 h-70 flex flex-col">
+                  <div className="h-20 flex items-center justify-center mb-4">
                     {product.image.startsWith('http') ? (
                       <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded" />
                     ) : (
@@ -120,7 +121,7 @@ export default function ProductsPage() {
                     </span>
                   </div>
                   <h3 className="text-xl font-semibold mb-2 line-clamp-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-4 flex-grow line-clamp-3">{product.description}</p>
+                  <p className="text-[var(--text-secondary)] mb-4 flex-grow line-clamp-1">{product.description}</p>
                   <div className="flex items-center mb-4">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
@@ -129,11 +130,11 @@ export default function ProductsPage() {
                         </span>
                       ))}
                     </div>
-                    <span className="ml-2 text-sm text-gray-600">({product.reviews})</span>
+                    <span className="ml-2 text-sm text-[var(--text-secondary)]">({product.reviews})</span>
                   </div>
                   <div className="flex justify-between items-center mt-auto">
                     <span className="text-2xl font-bold text-green-600">{product.price}</span>
-                    <Link href={`/product/${product.id}`} className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition duration-300">
+                    <Link href={`/product/${product.id}`} className="bg-[var(--primary-blue)] text-white px-4 py-2 rounded hover:bg-[var(--primary-blue-hover)] transition duration-300">
                       View Details
                     </Link>
                   </div>
@@ -161,7 +162,7 @@ export default function ProductsPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               {dummyData.products.map(product => (
-                <div key={product.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 h-full flex flex-col">
+                <div key={product.id} className="bg-white p-6 rounded-lg shadow-md hover:shadow-lg transition duration-300 h-70 flex flex-col">
                   <div className="h-24 flex items-center justify-center mb-4">
                     {product.image.startsWith('http') ? (
                       <img src={product.image} alt={product.name} className="w-20 h-20 object-cover rounded" />
@@ -175,7 +176,7 @@ export default function ProductsPage() {
                     </span>
                   </div>
                   <h3 className="text-xl font-semibold mb-2 line-clamp-2">{product.name}</h3>
-                  <p className="text-gray-600 mb-4 flex-grow line-clamp-3">{product.description}</p>
+                  <p className="text-[var(--text-secondary)] mb-4 flex-grow line-clamp-3">{product.description}</p>
                   <div className="flex items-center mb-4">
                     <div className="flex items-center">
                       {[...Array(5)].map((_, i) => (
@@ -184,11 +185,11 @@ export default function ProductsPage() {
                         </span>
                       ))}
                     </div>
-                    <span className="ml-2 text-sm text-gray-600">({product.reviews})</span>
+                    <span className="ml-2 text-sm text-[var(--text-secondary)]">({product.reviews})</span>
                   </div>
                   <div className="flex justify-between items-center mt-auto">
-                    <span className="text-2xl font-bold text-green-600">{product.price}</span>
-                    <Link href={`/product/${product.id}`} className="bg-pink-600 text-white px-4 py-2 rounded hover:bg-pink-700 transition duration-300">
+                    <span className="text-2xl font-bold text-white">{product.price}</span>
+                    <Link href={`/product/${product.id}`} className="bg-[var(--primary-blue)] text-white px-4 py-2 rounded hover:bg-[var(--primary-blue-hover)] transition duration-300">
                       View Details
                     </Link>
                   </div>

@@ -45,7 +45,7 @@ const Layout = ({ children }: LayoutProps) => {
         </button>
       )}
       <Sidebar isOpen={isOpen} toggleSidebar={toggleSidebar} isMobile={isMobile} />
-      <div className={`flex-1 bg-gray-100 min-h-screen transition-all duration-300 ${
+      <div className={`flex-1 bg-white min-h-screen transition-all duration-300 ${
         isMobile && isOpen ? "ml-0" : isOpen ? "ml-56" : "ml-16"
       }`}>
         {/* Main content with responsive padding */}

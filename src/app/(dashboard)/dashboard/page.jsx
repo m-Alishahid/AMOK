@@ -33,6 +33,7 @@ export default function Dashboard() {
   const [totalCategories, setTotalCategories] = useState(0);
   const [activeDiscounts, setActiveDiscounts] = useState(0);
   const [discountedProducts, setDiscountedProducts] = useState(0);
+  const [totalOrders, setTotalOrders] = useState(0);
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
   const [chartView, setChartView] = useState("monthly");
@@ -61,11 +62,24 @@ export default function Dashboard() {
           setTotalProducts(products.length);
           setTotalCategories(categories.length);
           setActiveDiscounts(discounts.length);
-          
+
           const discountedCount = products.filter(product => product.discountedPrice > 0).length;
           setDiscountedProducts(discountedCount);
 
           setTrendingProducts(products.slice(0, 4));
+
+          // Fetch dashboard stats from API
+          try {
+            const dashboardResponse = await fetch('/api/dashboard');
+            if (dashboardResponse.ok) {
+              const dashboardData = await dashboardResponse.json();
+              if (dashboardData.success) {
+                setTotalOrders(dashboardData.data.stats.totalOrders);
+              }
+            }
+          } catch (error) {
+            console.error("Error fetching dashboard stats:", error);
+          }
         } catch (error) {
           console.error("Error fetching stats:", error);
         } finally {
@@ -243,13 +257,13 @@ export default function Dashboard() {
 
         <Card className="border-orange-200 bg-orange-50/50">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900">Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-orange-600" />
+            <CardTitle className="text-sm font-medium text-orange-900">Total Orders</CardTitle>
+            <ShoppingCart className="h-4 w-4 text-orange-600" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-900">$12,500</div>
+            <div className="text-2xl font-bold text-orange-900">{loadingStats ? "..." : totalOrders}</div>
             <p className="text-xs text-orange-700">
-              +12% from last month
+              All time orders
             </p>
           </CardContent>
         </Card>

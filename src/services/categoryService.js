@@ -23,7 +23,6 @@ export const categoryService = {
     return response.data;
   },
 
-
   // Create new category
   create: async (categoryData) => {
     const response = await api.post('/categories', categoryData);

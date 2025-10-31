@@ -1,3 +1,4 @@
+// services/productService.js
 import api from '@/lib/api';
 
 export const productService = {
@@ -50,9 +51,30 @@ export const productService = {
     const response = await api.patch(`/products/${id}/status`, { status });
     return response.data;
   },
-    // Increment product views
+
+  // Increment product views
   incrementViews: async (id) => {
     const response = await api.patch(`/products/${id}/views`);
     return response.data;
   },
+
+  // ✅ GET PRODUCT VARIANTS
+  getVariants: async (productId) => {
+    const response = await api.get(`/products/${productId}/variants`);
+    return response.data;
+  },
+
+  // ✅ GET BATCH PRODUCTS VARIANTS
+  getBatchVariants: async (productIds) => {
+    const response = await api.post('/products/variants/batch', { productIds });
+    return response.data;
+  },
+
+  // ✅ CHECK STOCK AVAILABILITY
+  checkStock: async (productId, size = null, color = null, quantity = 1) => {
+    const response = await api.get(`/products/${productId}/check-stock`, {
+      params: { size, color, quantity }
+    });
+    return response.data;
+  }
 };

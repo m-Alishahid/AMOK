@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Navbar from "../../../components/Navbar";
 import { productService } from "@/services/productService";
 import { useCart } from "@/context/CartContext";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 
 export default function ProductDetailPage() {
   const { id } = useParams();
+  const router = useRouter();
   const { addToCart } = useCart();
   const { addToWishlist, isInWishlist } = useWishlist();
   const [product, setProduct] = useState(null);
@@ -166,7 +167,8 @@ export default function ProductDetailPage() {
 
     addToCart(cartItem);
     toast.success('Proceeding to checkout...');
-    // TODO: Redirect to checkout page
+    // Redirect to checkout page using Next.js router
+    router.push('/checkout');
   };
 
   if (loading) {
@@ -174,7 +176,7 @@ export default function ProductDetailPage() {
       <div className="min-h-screen bg-white">
         <Navbar />
         <div className="flex justify-center items-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#d4b26e]"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--primary-blue)]"></div>
         </div>
       </div>
     );
@@ -203,13 +205,13 @@ export default function ProductDetailPage() {
       <div className="bg-gray-50 border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-6 py-3">
           <nav className="flex items-center text-sm font-serif">
-            <a href="/" className="text-gray-600 hover:text-[#d4b26e] transition-colors">Home</a>
+            <a href="/" className="text-gray-600 hover:text-[var(--primary-blue)] transition-colors">Home</a>
             <span className="mx-3 text-gray-400">›</span>
-            <a href={`/category/${product.category?._id}`} className="text-gray-600 hover:text-[#d4b26e] transition-colors capitalize">
+            <a href={`/category/${product.category?._id}`} className="text-gray-600 hover:text-[var(--primary-blue)] transition-colors capitalize">
               {product.category?.name}
             </a>
             <span className="mx-3 text-gray-400">›</span>
-            <span className="text-[#d4b26e] font-semibold capitalize">{product.name}</span>
+            <span className="text-[var(--primary-blue)] font-semibold capitalize">{product.name}</span>
           </nav>
         </div>
       </div>
@@ -232,7 +234,7 @@ export default function ProductDetailPage() {
                     key={index}
                     onClick={() => setSelectedImage(index)}
                     className={`flex-shrink-0 w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
-                      selectedImage === index ? 'border-[#d4b26e]' : 'border-gray-200 hover:border-gray-300'
+                      selectedImage === index ? 'border-[var(--primary-blue)]' : 'border-gray-200 hover:border-gray-300'
                     }`}
                   >
                     <img
@@ -262,7 +264,7 @@ export default function ProductDetailPage() {
 
             {/* Price Section */}
             <div className="flex items-center gap-4">
-              <span className="text-3xl font-bold text-[#d4b26e] font-serif">${displayPrice}</span>
+              <span className="text-3xl font-bold text-[var(--primary-blue)] font-serif">${displayPrice}</span>
               {hasDiscount && (
                 <>
                   <span className="text-xl text-gray-500 line-through font-serif">${product.salePrice}</span>
@@ -284,7 +286,7 @@ export default function ProductDetailPage() {
               {product.requiresSize && availableSizes.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3 font-serif">
-                    Size: {selectedSize && <span className="font-semibold text-[#d4b26e]">{selectedSize}</span>}
+                    Size: {selectedSize && <span className="font-semibold text-[var(--primary-blue)]">{selectedSize}</span>}
                   </label>
                   <div className="flex flex-wrap gap-2">
                     {availableSizes.map((size) => {
@@ -298,9 +300,9 @@ export default function ProductDetailPage() {
                           disabled={!hasStock}
                           className={`px-4 py-2 rounded-full border-2 font-serif text-sm font-semibold transition-all ${
                             selectedSize === size
-                              ? 'border-[#d4b26e] bg-[#d4b26e] text-white'
+                              ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-white'
                               : hasStock
-                              ? 'border-gray-300 text-gray-700 hover:border-[#d4b26e] hover:text-[#d4b26e]'
+                              ? 'border-gray-300 text-gray-700 hover:border-[var(--primary-blue)] hover:text-[var(--primary-blue)]'
                               : 'border-gray-200 text-gray-400 cursor-not-allowed line-through'
                           }`}
                         >
@@ -317,7 +319,7 @@ export default function ProductDetailPage() {
               {product.requiresColor && availableColors.length > 0 && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-3 font-serif">
-                    Color: {selectedColor && <span className="font-semibold text-[#d4b26e]">{selectedColor}</span>}
+                    Color: {selectedColor && <span className="font-semibold text-[var(--primary-blue)]">{selectedColor}</span>}
                   </label>
                   <div className="flex flex-wrap gap-3">
                     {availableColors.map((color) => (
@@ -327,9 +329,9 @@ export default function ProductDetailPage() {
                         disabled={!color.inStock}
                         className={`px-4 py-2 rounded-full border-2 font-serif text-sm font-semibold transition-all ${
                           selectedColor === color.name
-                            ? 'border-[#d4b26e] bg-[#d4b26e] text-white'
+                            ? 'border-[var(--primary-blue)] bg-[var(--primary-blue)] text-white'
                             : color.inStock
-                            ? 'border-gray-300 text-gray-700 hover:border-[#d4b26e] hover:text-[#d4b26e]'
+                            ? 'border-gray-300 text-gray-700 hover:border-[var(--primary-blue)] hover:text-[var(--primary-blue)]'
                             : 'border-gray-200 text-gray-400 cursor-not-allowed line-through'
                         }`}
                       >

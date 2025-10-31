@@ -12,6 +12,9 @@ export default function HomePage() {
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [touchStart, setTouchStart] = useState(null);
+  const [touchEnd, setTouchEnd] = useState(null);
+  const [showScrollbar, setShowScrollbar] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,6 +87,19 @@ export default function HomePage() {
       return true;
     });
 
+  // Touch handlers for scrollbar visibility
+  const onTouchStart = (e) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setShowScrollbar(true);
+  };
+
+  const onTouchMove = (e) => setTouchEnd(e.targetTouches[0].clientX);
+
+  const onTouchEnd = () => {
+    setShowScrollbar(false);
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -142,27 +158,35 @@ export default function HomePage() {
             Shop by Category
           </h2>
 
-          <div className="overflow-x-auto no-scrollbar -mx-4 px-4">
-            <div className="flex gap-4 snap-x snap-mandatory items-stretch">
-              {/* "All" Category Card - Same size as other categories */}
-
-              {categories.map((category) => (
-                <div key={category._id || category.id} className="flex-shrink-0 snap-start w-48 md:w-56 bg-blue-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+          {categories.length < 5 ? (
+            <div className="flex justify-center gap-6">
+              {categories.map((category, index) => (
+                <div key={category._id || category.id} className="flex-shrink-0 w-64 md:w-72 bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
                   <div
                     role="button"
                     onClick={() => setSelectedCategory(category.name)}
                     className="flex flex-col items-center justify-between h-full cursor-pointer"
                   >
-                    <div className="text-4xl md:text-5xl mb-2">
-                      {category.name.toLowerCase().includes('girl') ? '👗' :
-                        category.name.toLowerCase().includes('boy') ? '👔' :
-                          category.name.toLowerCase().includes('baby') ? '🍼' :
-                            category.name.toLowerCase().includes('accessories') ? '🧣' : '👕'}
+                    <div className="w-20 h-20 md:w-24 md:h-24 mb-3 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                      {category.image ? (
+                        <img
+                          src={category.image}
+                          alt={category.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <div className="text-3xl md:text-4xl">
+                          {category.name.toLowerCase().includes('girl') ? '👗' :
+                            category.name.toLowerCase().includes('boy') ? '👔' :
+                              category.name.toLowerCase().includes('baby') ? '🍼' :
+                                category.name.toLowerCase().includes('accessories') ? '🧣' : '👕'}
+                        </div>
+                      )}
                     </div>
-                    <h3 className="text-sm md:text-base font-serif font-semibold text-center">{category.name}</h3>
-                    <p className="text-xs text-gray-600 text-center mt-2">Discover our {category.name.toLowerCase()} collection</p>
-                    <div className="mt-3 w-full">
-                      <button className="w-full bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-3 py-2 rounded-full text-sm font-serif transition-colors duration-300">
+                    <h3 className="text-base md:text-lg font-serif font-semibold text-center">{category.name}</h3>
+                    <p className="text-sm text-gray-600 text-center mt-2">Discover our {category.name.toLowerCase()} collection</p>
+                    <div className="mt-4 w-full">
+                      <button className="w-full bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-4 py-3 rounded-full text-base font-serif transition-colors duration-300">
                         Shop
                       </button>
                     </div>
@@ -170,7 +194,52 @@ export default function HomePage() {
                 </div>
               ))}
             </div>
-          </div>
+          ) : (
+            <div className={`overflow-x-auto  -mx-4 px-4`}>
+              <div
+                className="flex gap-4 snap-x snap-mandatory items-stretch "
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                {/* "All" Category Card - Same size as other categories */}
+
+                {categories.map((category, index) => (
+                  <div key={category._id || category.id} className="flex-shrink-0 snap-start w-48 md:w-56 bg-blue-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
+                    <div
+                      role="button"
+                      onClick={() => setSelectedCategory(category.name)}
+                      className="flex flex-col items-center justify-between h-full cursor-pointer"
+                    >
+                      <div className="w-16 h-16 md:w-20 md:h-20 mb-2 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                        {category.image ? (
+                          <img
+                            src={category.image}
+                            alt={category.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="text-2xl md:text-3xl">
+                            {category.name.toLowerCase().includes('girl') ? '👗' :
+                              category.name.toLowerCase().includes('boy') ? '👔' :
+                                category.name.toLowerCase().includes('baby') ? '🍼' :
+                                  category.name.toLowerCase().includes('accessories') ? '🧣' : '👕'}
+                          </div>
+                        )}
+                      </div>
+                      <h3 className="text-sm md:text-base font-serif font-semibold text-center">{category.name}</h3>
+                      <p className="text-xs text-gray-600 text-center mt-2">Discover our {category.name.toLowerCase()} collection</p>
+                      <div className="mt-3 w-full">
+                        <button className="w-full bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-3 py-2 rounded-full text-sm font-serif transition-colors duration-300">
+                          Shop
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -272,9 +341,20 @@ export default function HomePage() {
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-grow px-4 py-3 rounded-lg sm:rounded-l-lg sm:rounded-r-none text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)] font-serif"
+                className="flex-grow px-4 py-3 rounded-lg sm:rounded-l-lg bg-white sm:rounded-r-none text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)] font-serif"
               />
-              <button className="bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-6 py-3 rounded-lg sm:rounded-r-lg sm:rounded-l-none font-serif transition-colors duration-300">
+              <button
+                onClick={() => {
+                  const email = document.querySelector('input[type="email"]').value;
+                  if (email) {
+                    alert(`Thank you for subscribing! We'll send updates to ${email}`);
+                    document.querySelector('input[type="email"]').value = '';
+                  } else {
+                    alert('Please enter a valid email address');
+                  }
+                }}
+                className="bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-6 py-3 rounded-lg sm:rounded-r-lg sm:rounded-l-none font-serif transition-colors duration-300"
+              >
                 Subscribe
               </button>
             </div>

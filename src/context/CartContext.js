@@ -49,12 +49,6 @@ export const CartProvider = ({ children }) => {
         const updatedItems = [...prevItems];
         const newQuantity = updatedItems[existingItemIndex].quantity + item.quantity;
 
-        // Check stock limit
-        if (newQuantity > updatedItems[existingItemIndex].stock) {
-          alert(`Cannot add more than ${updatedItems[existingItemIndex].stock} items to cart`);
-          return prevItems;
-        }
-
         updatedItems[existingItemIndex].quantity = newQuantity;
         return updatedItems;
       } else {
@@ -81,10 +75,6 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems =>
       prevItems.map(item => {
         if (item.productId === productId && item.size === size && item.color === color) {
-          if (newQuantity > item.stock) {
-            alert(`Cannot set quantity above ${item.stock}`);
-            return item;
-          }
           return { ...item, quantity: newQuantity };
         }
         return item;
