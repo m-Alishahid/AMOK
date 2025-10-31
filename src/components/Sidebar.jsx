@@ -1,7 +1,7 @@
 "use client";
 
 import { useAuth } from "@/context/AuthContext";
-import { User2 } from "lucide-react";
+import { DiscIcon, User2 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -29,7 +29,8 @@ const Sidebar = ({ isOpen, toggleSidebar, isMobile }) => {
     { href: "/users", label: "Users", icon: <FiUsers /> },
     { href: "/category", label: "Categories", icon: <FiList /> },
     { href: "/products", label: "Products", icon: <FiBox /> },
-        // { href: "/vendors", label: "Vendors", icon: <User2 /> },
+    { href: "/discount", label: "DiscountManager", icon: <DiscIcon /> },
+    // { href: "/vendors", label: "Vendors", icon: <User2 /> },
     { href: "/orders", label: "Orders", icon: <FiShoppingBag /> },
   ];
 
