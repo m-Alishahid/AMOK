@@ -5,6 +5,8 @@ import Navbar from "@/components/Navbar";
 import ProductCard from "@/components/ProductCard"; // Import ProductCard component
 import { productService } from "@/services/productService";
 import { categoryService } from "@/services/categoryService";
+import Footer from "@/components/Footer";
+import ParentReviews from "@/components/Reviews";
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -305,39 +307,22 @@ export default function HomePage() {
       </section>
 
       {/* Reviews */}
-      <section className="bg-white py-8 md:py-12">
-        <div className="container mx-auto px-4">
-          <h2 className="text-2xl md:text-4xl font-serif font-bold text-center mb-6 text-gray-800">
-            What Parents Say
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {reviews.map((review, index) => (
-              <div key={index} className="bg-gray-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                <div className="flex items-center mb-4">
-                  <div className="text-3xl mr-4 text-[var(--primary-blue)]">{"⭐".repeat(review.rating)}</div>
-                  <div>
-                    <h4 className="font-serif font-semibold text-gray-800">{review.name}</h4>
-                    <p className="text-sm text-gray-600 font-serif">{review.role}</p>
-                  </div>
-                </div>
-                <p className="text-gray-700 font-serif italic">"{review.text}"</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
+      <ParentReviews reviews={reviews} />
+
+      
+     
 
       {/* Newsletter */}
-      <section className="bg-black text-white py-8 md:py-12">
+      <section className="bg-white text-black py-8 md:py-12">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-2xl md:text-4xl font-serif font-bold mb-3">
             Stay in Style
           </h2>
-          <p className="text-base md:text-lg mb-6 max-w-2xl mx-auto font-serif text-gray-300">
+          <p className="text-base md:text-lg mb-6 max-w-2xl mx-auto font-serif text-gray-700">
             Subscribe to our newsletter for the latest luxury kidswear updates and exclusive offers.
           </p>
           <div className="max-w-md mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 text-gray-700">
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -363,52 +348,8 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      <footer className="bg-black text-white py-8">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div>
-              <h3 className="text-lg font-serif font-bold text-[var(--primary-blue)] mb-2">
-                Childrensalon Clone
-              </h3>
-              <p className="text-gray-300 text-sm font-serif">
-                Luxury kidswear for the discerning child.
-              </p>
-            </div>
-            <div>
-              <h4 className="text-sm font-serif font-semibold mb-2">Shop</h4>
-              <ul className="space-y-1 text-gray-300 text-sm font-serif">
-                <li><Link href="/product?category=girls" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Girls</Link></li>
-                <li><Link href="/product?category=boys" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Boys</Link></li>
-                <li><Link href="/product?category=new-in" className="hover:text-[var(--primary-blue)] transition-colors duration-300">New In</Link></li>
-                <li><Link href="/product?category=designers" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Designers</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-serif font-semibold mb-2">Support</h4>
-              <ul className="space-y-1 text-gray-300 text-sm font-serif">
-                <li><Link href="/size-guide" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Size Guide</Link></li>
-                <li><Link href="/shipping" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Shipping Info</Link></li>
-                <li><Link href="/returns" className="hover:text-[var(--primary-blue)] transition-colors duration-300">Returns</Link></li>
-                <li><Link href="/faq" className="hover:text-[var(--primary-blue)] transition-colors duration-300">FAQ</Link></li>
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-sm font-serif font-semibold mb-2">Contact</h4>
-              <ul className="space-y-1 text-gray-300 text-sm font-serif">
-                <li>📧 hello@childrensalon.com</li>
-                <li>📞 +44 (20) 123-4567</li>
-                <li>📍 123 Luxury St, London</li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400">
-            <p className="text-sm font-serif">
-              © 2025 Childrensalon Clone. All rights reserved.
-            </p>
-          </div>
-        </div>
-      </footer>
+      
+      <Footer/>
     </div>
   );
 }
