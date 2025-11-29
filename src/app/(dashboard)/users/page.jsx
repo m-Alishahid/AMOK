@@ -8,7 +8,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { User, Shield, CheckSquare, Square } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import DataTable from "@/components/DataTable";
+import { User, Shield, CheckSquare, Square, Edit, Trash2, Plus } from "lucide-react";
 
 export default function Users() {
   const { user, hasPermission } = useAuth();
@@ -32,6 +35,10 @@ export default function Users() {
     employeeId: '',
     role: ''
   });
+
+  // Dialog state
+  const [isCreateUserDialogOpen, setIsCreateUserDialogOpen] = useState(false);
+  const [isCreateRoleDialogOpen, setIsCreateRoleDialogOpen] = useState(false);
 
   // Role form state
   const [roleForm, setRoleForm] = useState({
@@ -309,29 +316,33 @@ export default function Users() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 md:p-6">
-      <div className="max-w-7xl mx-auto">
-        <Card className="shadow-lg">
-          <CardHeader className="pb-4">
-            <div className="flex items-center gap-2">
-              <User className="h-6 w-6 text-blue-600" />
-              <CardTitle className="text-2xl">Users & Roles Management</CardTitle>
-            </div>
-            <CardDescription>
-              Manage users and roles for the admin panel.
-            </CardDescription>
-          </CardHeader>
+    <div className="space-y-4 md:space-y-6 px-0 sm:px-0">
+      {/* Header Section */}
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-4 sm:p-6">
+        <div className="flex items-center gap-1">
+          <User className="h-8 w-8 sm:h-10 sm:w-10 text-blue-600" />
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Users & Roles Management</h1>
+            <p className="text-gray-600 mt-1 text-sm sm:text-base">Manage users and roles for the admin panel.</p>
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-4 sm:p-6">
 
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mx-6 mb-4">
-              <TabsTrigger value="users" className="flex items-center gap-2">
-                <User className="h-4 w-4" />
-                Users ({users.length})
+            <TabsList className="grid w-full grid-cols-2 mx-6 sm:mx-0 mb-2 justify-center">
+              <TabsTrigger value="users" className="flex items-center gap-1 sm:gap-2 text-xs sm:text-sm">
+                <User className="h-3 w-3 sm:h-4 sm:w-4" />
+                <span className="hidden xs:inline">Users ({users.length})</span>
+                <span className="xs:hidden">Users</span>
               </TabsTrigger>
               {hasPermission('user', 'create') && (
-                <TabsTrigger value="roles" className="flex items-center gap-2">
-                  <Shield className="h-4 w-4" />
-                  Roles ({roles.length})
+                <TabsTrigger value="roles" className="flex items-center gap-1 sm:gap-1 text-xs sm:text-sm">
+                  <Shield className="h-3 w-3 sm:h-4 sm:w-4" />
+                  <span className="hidden xs:inline">Roles ({roles.length})</span>
+                  <span className="xs:hidden">Roles</span>
                 </TabsTrigger>
               )}
             </TabsList>
@@ -349,215 +360,302 @@ export default function Users() {
               {/* Users Tab */}
               {activeTab === 'users' && (
                 <div className="space-y-6">
-                  {/* Create User Form */}
+                  {/* Create User Button */}
                   {hasPermission('user', 'create') && (
-                    <div className="bg-gray-50 p-6 rounded-lg">
-                      <h2 className="text-lg font-medium text-gray-900 mb-4">Create New User</h2>
-                      <form onSubmit={handleUserSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                        <div>
-                          <Label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
-                            First Name *
-                          </Label>
-                          <Input
-                            type="text"
-                            name="firstName"
-                            id="firstName"
-                            required
-                            value={userForm.firstName}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                            Last Name *
-                          </Label>
-                          <Input
-                            type="text"
-                            name="lastName"
-                            id="lastName"
-                            required
-                            value={userForm.lastName}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                            Email *
-                          </Label>
-                          <Input
-                            type="email"
-                            name="email"
-                            id="email"
-                            required
-                            value={userForm.email}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
-                            Password *
-                          </Label>
-                          <Input
-                            type="password"
-                            name="password"
-                            id="password"
-                            required
-                            minLength="6"
-                            value={userForm.password}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="phone" className="block text-sm font-medium text-gray-700">
-                            Phone
-                          </Label>
-                          <Input
-                            type="text"
-                            name="phone"
-                            id="phone"
-                            value={userForm.phone}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="role" className="block text-sm font-medium text-gray-700">
-                            Role *
-                          </Label>
-                          <select
-                            name="role"
-                            id="role"
-                            required
-                            value={userForm.role}
-                            onChange={handleUserFormChange}
-                            className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-                          >
-                            <option value="">Select a role</option>
-                            {roles.map((role) => (
-                              <option key={role._id} value={role._id}>
-                                {role.name}
-                              </option>
-                            ))}
-                          </select>
-                        </div>
-
-                        <div>
-                          <Label htmlFor="department" className="block text-sm font-medium text-gray-700">
-                            Department
-                          </Label>
-                          <Input
-                            type="text"
-                            name="department"
-                            id="department"
-                            value={userForm.department}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="position" className="block text-sm font-medium text-gray-700">
-                            Position
-                          </Label>
-                          <Input
-                            type="text"
-                            name="position"
-                            id="position"
-                            value={userForm.position}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div>
-                          <Label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">
-                            Employee ID
-                          </Label>
-                          <Input
-                            type="text"
-                            name="employeeId"
-                            id="employeeId"
-                            value={userForm.employeeId}
-                            onChange={handleUserFormChange}
-                            className="mt-1"
-                          />
-                        </div>
-
-                        <div className="sm:col-span-2 lg:col-span-3">
-                          <Button
-                            type="submit"
-                            disabled={loading}
-                            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed"
-                          >
-                            {loading ? 'Creating...' : 'Create User'}
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                      <h2 className="text-lg font-medium text-gray-900">All Users</h2>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                            <Plus className="h-4 w-4 mr-2" />
+                            Create User
                           </Button>
-                        </div>
-                      </form>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[600px] max-w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4">
+                          <DialogHeader>
+                            <DialogTitle>Create New User</DialogTitle>
+                            <DialogDescription>
+                              Fill in the details below to create a new user account.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <form onSubmit={handleUserSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                            <div>
+                              <Label htmlFor="firstName" className="block text-sm font-medium text-gray-700">
+                                First Name *
+                              </Label>
+                              <Input
+                                type="text"
+                                name="firstName"
+                                id="firstName"
+                                required
+                                value={userForm.firstName}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
+                                Last Name *
+                              </Label>
+                              <Input
+                                type="text"
+                                name="lastName"
+                                id="lastName"
+                                required
+                                value={userForm.lastName}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <Label htmlFor="email" className="block text-sm font-medium text-gray-700">
+                                Email *
+                              </Label>
+                              <Input
+                                type="email"
+                                name="email"
+                                id="email"
+                                required
+                                value={userForm.email}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2">
+                              <Label htmlFor="password" className="block text-sm font-medium text-gray-700">
+                                Password *
+                              </Label>
+                              <Input
+                                type="password"
+                                name="password"
+                                id="password"
+                                required
+                                minLength="6"
+                                value={userForm.password}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+                                Phone
+                              </Label>
+                              <Input
+                                type="text"
+                                name="phone"
+                                id="phone"
+                                value={userForm.phone}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="role" className="block text-sm font-medium text-gray-700">
+                                Role *
+                              </Label>
+                              <select
+                                name="role"
+                                id="role"
+                                required
+                                value={userForm.role}
+                                onChange={handleUserFormChange}
+                                className="mt-1 block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                              >
+                                <option value="">Select a role</option>
+                                {roles.map((role) => (
+                                  <option key={role._id} value={role._id}>
+                                    {role.name}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div>
+                              <Label htmlFor="department" className="block text-sm font-medium text-gray-700">
+                                Department
+                              </Label>
+                              <Input
+                                type="text"
+                                name="department"
+                                id="department"
+                                value={userForm.department}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="position" className="block text-sm font-medium text-gray-700">
+                                Position
+                              </Label>
+                              <Input
+                                type="text"
+                                name="position"
+                                id="position"
+                                value={userForm.position}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div>
+                              <Label htmlFor="employeeId" className="block text-sm font-medium text-gray-700">
+                                Employee ID
+                              </Label>
+                              <Input
+                                type="text"
+                                name="employeeId"
+                                id="employeeId"
+                                value={userForm.employeeId}
+                                onChange={handleUserFormChange}
+                                className="mt-1"
+                              />
+                            </div>
+
+                            <div className="sm:col-span-2 flex justify-end gap-3">
+                              <DialogTrigger asChild>
+                                <Button type="button" variant="outline">
+                                  Cancel
+                                </Button>
+                              </DialogTrigger>
+                              <Button
+                                type="submit"
+                                disabled={loading}
+                                className="bg-blue-600 hover:bg-blue-700 text-white"
+                              >
+                                {loading ? 'Creating...' : 'Create User'}
+                              </Button>
+                            </div>
+                          </form>
+                        </DialogContent>
+                      </Dialog>
                     </div>
                   )}
 
                   {/* Users List */}
                   <div>
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">All Users</h2>
-                    <div className="bg-white shadow overflow-hidden sm:rounded-md">
-                      <ul className="divide-y divide-gray-200">
-                        {users.map((userItem) => (
-                          <li key={userItem._id}>
-                            <div className="px-4 py-4 flex items-center justify-between sm:px-6">
-                              <div className="flex items-center">
-                                <div className="flex-shrink-0">
-                                  <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <span className="text-white font-medium text-sm">
-                                      {userItem.firstName?.charAt(0)}{userItem.lastName?.charAt(0)}
-                                    </span>
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <div className="text-sm font-medium text-gray-900">
-                                    {userItem.firstName} {userItem.lastName}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {userItem.email}
-                                  </div>
-                                  <div className="text-xs text-gray-400 mt-1">
-                                    {userItem.role?.name} • {userItem.department} • {userItem.position}
-                                  </div>
-                                </div>
+                    {!hasPermission('user', 'create') && (
+                      <h2 className="text-lg font-medium text-gray-900 mb-4">All Users</h2>
+                    )}
+                    <DataTable
+                      columns={[
+                        {
+                          key: "name",
+                          label: "Name",
+                          sortable: true,
+                          render: (value, user) => (
+                            <div className="flex items-center gap-0">
+                              <div className="h-8 w-8 bg-blue-600 rounded-full flex items-center justify-center mr-1">
+                                <span className="text-white font-medium text-sm">
+                                  {user.firstName?.charAt(0)}{user.lastName?.charAt(0)}
+                                </span>
                               </div>
-                              <div className="flex items-center space-x-4">
-                                <button
-                                  onClick={() => handleToggleUserStatus(userItem._id, userItem.isActive)}
-                                  className={`inline-flex px-3 py-1 text-xs font-semibold rounded-full cursor-pointer ${
-                                    userItem.isActive
-                                      ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                                      : 'bg-red-100 text-red-800 hover:bg-red-200'
-                                  }`}
-                                >
-                                  {userItem.isActive ? 'Active' : 'Inactive'}
-                                </button>
-                                {hasPermission('user', 'delete') && (
-                                  <button
-                                    onClick={() => handleDeleteUser(userItem._id)}
-                                    className="text-red-600 hover:text-red-900 text-sm font-medium"
-                                  >
-                                    Delete
-                                  </button>
-                                )}
+                              <div>
+                                <p className="font-medium text-gray-900">{user.firstName} {user.lastName}</p>
+                                <p className="text-sm text-gray-500">{user.email}</p>
                               </div>
                             </div>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                          ),
+                        },
+                        {
+                          key: "role.name",
+                          label: "Role",
+                          sortable: true,
+                          render: (value) => (
+                            <Badge variant="secondary">{value}</Badge>
+                          ),
+                        },
+                        {
+                          key: "department",
+                          label: "Department",
+                          sortable: true,
+                        },
+                        {
+                          key: "position",
+                          label: "Position",
+                          sortable: true,
+                        },
+                        {
+                          key: "isActive",
+                          label: "Status",
+                          sortable: true,
+                          render: (value) => (
+                            <Badge className={value ? "bg-green-200 hover:bg-green-100 text-green-600" : "bg-red-200 hover:bg-red-100 text-red-600"}>
+                              {value ? 'Active' : 'Inactive'}
+                            </Badge>
+                          ),
+                        },
+                      ]}
+                      data={users}
+                      responsiveView={true}
+                      mobileCard={(user) => (
+                        <div className="bg-white border border-gray-200 rounded-lg p-3 space-y-3">
+                          <div className="flex items-start gap-3">
+                            <div className="h-10 w-10 bg-blue-600 rounded-full flex items-center justify-center text-white flex-shrink-0">
+                              <span className="text-sm font-medium">{user.firstName?.charAt(0)}{user.lastName?.charAt(0)}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-medium text-gray-900 text-sm truncate">{user.firstName} {user.lastName}</h3>
+                              <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                              <p className="text-xs text-gray-600 mt-1 truncate">{user.role?.name}</p>
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-1 text-xs pt-2 border-t border-gray-100">
+                            <div>
+                              <p className="text-gray-600">Department</p>
+                              <p className="font-medium text-gray-900 truncate">{user.department || '—'}</p>
+                            </div>
+                            <div>
+                              <p className="text-gray-600">Position</p>
+                              <p className="font-medium text-gray-900 truncate">{user.position || '—'}</p>
+                            </div>
+                          </div>
+
+                          <div className="flex gap-2 pt-2 border-t border-gray-100">
+                            <button
+                              onClick={() => handleToggleUserStatus(user._id, user.isActive)}
+                              className="flex-1 text-xs py-2 rounded-lg bg-white border border-gray-200 text-gray-800 hover:bg-gray-50 active:bg-gray-100 touch-manipulation"
+                            >
+                              {user.isActive ? 'Deactivate' : 'Activate'}
+                            </button>
+                            {hasPermission('user', 'delete') && (
+                              <button
+                                onClick={() => handleDeleteUser(user._id)}
+                                className="flex-1 text-xs py-2 rounded-lg bg-white border border-red-100 text-red-600 hover:bg-red-50 active:bg-red-100 touch-manipulation"
+                              >
+                                Delete
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                      actions={[
+                        {
+                          label: (user) => user.isActive ? "Deactivate" : "Activate",
+                          icon: (user) => user.isActive ? Square : CheckSquare,
+                          onClick: (user) => handleToggleUserStatus(user._id, user.isActive),
+                          variant: "secondary",
+                        },
+                        ...(hasPermission('user', 'delete') ? [{
+                          label: "Delete",
+                          icon: Trash2,
+                          variant: "secondary",
+                          onClick: (user) => handleDeleteUser(user._id),
+                        }] : []),
+                      ]}
+                      searchable={true}
+                      paginated={true}
+                      pageSize={10}
+                      loading={loading}
+                      emptyMessage="No users found"
+                      searchPlaceholder="Search users by name, email, or role..."
+                    />
                   </div>
                 </div>
               )}
@@ -565,155 +663,175 @@ export default function Users() {
               {/* Roles Tab */}
               {activeTab === 'roles' && hasPermission('user', 'create') && (
                 <div className="space-y-6">
-                  {/* Create Role Form */}
-                  <div className="bg-gray-50 p-6 rounded-lg">
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">Create New Role</h2>
-                    <form onSubmit={handleRoleSubmit} className="space-y-6">
-                      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-                        <div>
-                          <Label htmlFor="roleName" className="block text-sm font-medium text-gray-700">
-                            Role Name *
-                          </Label>
-                          <Input
-                            type="text"
-                            name="name"
-                            id="roleName"
-                            required
-                            value={roleForm.name}
-                            onChange={handleRoleFormChange}
-                            placeholder="e.g., admin, manager, support"
-                          />
-                        </div>
+                  {/* Create Role Button */}
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                    <h2 className="text-lg font-medium text-gray-900">All Roles</h2>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button className="bg-blue-600 hover:bg-blue-700 text-white w-full sm:w-auto">
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Role
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-[800px] max-w-full h-full sm:h-auto sm:max-h-[90vh] overflow-y-auto p-4">
+                        <DialogHeader>
+                          <DialogTitle>Create New Role</DialogTitle>
+                          <DialogDescription>
+                            Fill in the details below to create a new role with specific permissions.
+                          </DialogDescription>
+                        </DialogHeader>
+                        <form onSubmit={handleRoleSubmit} className="space-y-6">
+                          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <div>
+                              <Label htmlFor="roleName" className="block text-sm font-medium text-gray-700">
+                                Role Name *
+                              </Label>
+                              <Input
+                                type="text"
+                                name="name"
+                                id="roleName"
+                                required
+                                value={roleForm.name}
+                                onChange={handleRoleFormChange}
+                                placeholder="e.g., admin, manager, support"
+                              />
+                            </div>
 
-                        <div>
-                          <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
-                            Description *
-                          </Label>
-                          <Input
-                            type="text"
-                            name="description"
-                            id="description"
-                            required
-                            value={roleForm.description}
-                            onChange={handleRoleFormChange}
-                            placeholder="Brief description of the role"
-                          />
-                        </div>
-                      </div>
+                            <div>
+                              <Label htmlFor="description" className="block text-sm font-medium text-gray-700">
+                                Description *
+                              </Label>
+                              <Input
+                                type="text"
+                                name="description"
+                                id="description"
+                                required
+                                value={roleForm.description}
+                                onChange={handleRoleFormChange}
+                                placeholder="Brief description of the role"
+                              />
+                            </div>
+                          </div>
 
-                      {/* Permissions Section */}
-                      <div className="border-t pt-6">
-                        <div className="flex items-center justify-between mb-6">
-                          <h3 className="text-lg font-medium text-gray-900">Permissions</h3>
-                          <div className="flex gap-2">
+                          {/* Permissions Section */}
+                          <div className="border-t pt-6">
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+                              <h3 className="text-lg font-medium text-gray-900">Permissions</h3>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => permissionModules.forEach(module => handleSelectAll(module.name))}
+                                  className="flex items-center gap-1 text-xs sm:text-sm"
+                                >
+                                  <CheckSquare className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  Select All
+                                </Button>
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => permissionModules.forEach(module => handleDeselectAll(module.name))}
+                                  className="flex items-center gap-1 text-xs sm:text-sm"
+                                >
+                                  <Square className="h-3 w-3 sm:h-4 sm:w-4" />
+                                  Clear All
+                                </Button>
+                              </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+                              {permissionModules.map((module) => (
+                                <Card key={module.name} className="border">
+                                  <CardHeader className="pb-3">
+                                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                                      <CardTitle className="text-sm sm:text-base capitalize">{module.title}</CardTitle>
+                                      <div className="flex gap-1 self-start sm:self-auto">
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleSelectAll(module.name)}
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          All
+                                        </Button>
+                                        <Button
+                                          type="button"
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => handleDeselectAll(module.name)}
+                                          className="h-6 px-2 text-xs"
+                                        >
+                                          None
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <CardDescription className="text-xs">
+                                      {module.description}
+                                    </CardDescription>
+                                  </CardHeader>
+                                  <CardContent className="pt-0">
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                                      {module.permissions.map((action) => (
+                                        <label
+                                          key={action}
+                                          className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
+                                        >
+                                          <input
+                                            type="checkbox"
+                                            name={`permissions.${module.name}.${action}`}
+                                            checked={roleForm.permissions[module.name][action]}
+                                            onChange={handleRoleFormChange}
+                                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                                          />
+                                          <span className="text-sm font-medium capitalize text-gray-700">
+                                            {action.replace('_', ' ')}
+                                          </span>
+                                        </label>
+                                      ))}
+                                    </div>
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="flex justify-end gap-3">
+                            <DialogTrigger asChild>
+                              <Button type="button" variant="outline">
+                                Cancel
+                              </Button>
+                            </DialogTrigger>
                             <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => permissionModules.forEach(module => handleSelectAll(module.name))}
-                              className="flex items-center gap-1"
+                              type="submit"
+                              disabled={loading}
+                              className="bg-blue-600 hover:bg-blue-700 text-white"
                             >
-                              <CheckSquare className="h-4 w-4" />
-                              Select All
-                            </Button>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => permissionModules.forEach(module => handleDeselectAll(module.name))}
-                              className="flex items-center gap-1"
-                            >
-                              <Square className="h-4 w-4" />
-                              Clear All
+                              {loading ? 'Creating...' : 'Create Role'}
                             </Button>
                           </div>
-                        </div>
-
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                          {permissionModules.map((module) => (
-                            <Card key={module.name} className="border">
-                              <CardHeader className="pb-3">
-                                <div className="flex items-center justify-between">
-                                  <CardTitle className="text-base capitalize">{module.title}</CardTitle>
-                                  <div className="flex gap-1">
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleSelectAll(module.name)}
-                                      className="h-6 px-2 text-xs"
-                                    >
-                                      All
-                                    </Button>
-                                    <Button
-                                      type="button"
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => handleDeselectAll(module.name)}
-                                      className="h-6 px-2 text-xs"
-                                    >
-                                      None
-                                    </Button>
-                                  </div>
-                                </div>
-                                <CardDescription className="text-xs">
-                                  {module.description}
-                                </CardDescription>
-                              </CardHeader>
-                              <CardContent className="pt-0">
-                                <div className="grid grid-cols-2 gap-2">
-                                  {module.permissions.map((action) => (
-                                    <label
-                                      key={action}
-                                      className="flex items-center space-x-2 p-2 rounded-md hover:bg-gray-50 cursor-pointer"
-                                    >
-                                      <input
-                                        type="checkbox"
-                                        name={`permissions.${module.name}.${action}`}
-                                        checked={roleForm.permissions[module.name][action]}
-                                        onChange={handleRoleFormChange}
-                                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                                      />
-                                      <span className="text-sm font-medium capitalize text-gray-700">
-                                        {action.replace('_', ' ')}
-                                      </span>
-                                    </label>
-                                  ))}
-                                </div>
-                              </CardContent>
-                            </Card>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex justify-end">
-                        <Button
-                          type="submit"
-                          disabled={loading}
-                          className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md disabled:bg-blue-400 disabled:cursor-not-allowed"
-                        >
-                          {loading ? 'Creating...' : 'Create Role'}
-                        </Button>
-                      </div>
-                    </form>
+                        </form>
+                      </DialogContent>
+                    </Dialog>
                   </div>
 
                   {/* Roles List */}
                   <div>
-                    <h2 className="text-lg font-medium text-gray-900 mb-4">All Roles</h2>
-                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {roles.map((role) => (
                         <Card key={role._id} className="border">
                           <CardHeader className="pb-3">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-lg capitalize">{role.name}</CardTitle>
-                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2">
+                              <CardTitle className="text-base sm:text-lg capitalize">{role.name}</CardTitle>
+                              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full self-start ${
                                 role.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
                               }`}>
                                 {role.isActive ? 'Active' : 'Inactive'}
                               </span>
                             </div>
-                            <CardDescription>{role.description}</CardDescription>
+                            <CardDescription className="text-sm">{role.description}</CardDescription>
                           </CardHeader>
                           <CardContent>
                             <div className="space-y-3">
@@ -740,7 +858,7 @@ export default function Users() {
               )}
             </div>
           </Tabs>
-        </Card>
+        </div>
       </div>
     </div>
   );

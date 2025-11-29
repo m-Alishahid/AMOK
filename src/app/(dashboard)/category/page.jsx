@@ -3,6 +3,11 @@
 import { useState, useRef, useEffect } from "react";
 import { categoryService } from "@/services/categoryService";
 import { toast } from "sonner";
+import DataTable from "@/components/DataTable";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Edit, Trash2, ToggleLeft, ToggleRight, Tag } from "lucide-react";
 
 export default function Categories() {
   const [categories, setCategories] = useState([]);
@@ -208,313 +213,321 @@ export default function Categories() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="w-full space-y-3 sm:space-y-4 md:space-y-6">
       {/* Header Section */}
-      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
-          <div className="mb-4 sm:mb-0">
-            <h1 className="text-2xl font-bold text-gray-900">Categories Management</h1>
-            <p className="text-gray-600 mt-1">Manage your product categories and their properties</p>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-3 sm:p-4 md:p-6">
+        <div className="flex flex-col xs:flex-row xs:items-center xs:justify-between gap-3 xs:gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl font-bold text-gray-900 truncate flex items-center gap-2">
+              <Tag className="w-6 h-6 sm:w-7 sm:h-7 md:w-8 md:h-8 text-blue-600" />
+              Categories Management
+            </h1>
+            <p className="text-gray-600 mt-1 text-xs xs:text-sm md:text-base truncate">Manage your product categories and their properties</p>
           </div>
-          <button
+          {/* <button
             onClick={() => {
               setFormMode('add');
               setShowForm(true);
             }}
-            className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center shadow-sm"
+            className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 sm:py-2.5 px-3 sm:px-4 rounded-lg transition duration-200 flex items-center justify-center shadow-sm text-xs sm:text-sm w-full xs:w-auto touch-manipulation flex-shrink-0 disabled:bg-gray-400 disabled:cursor-not-allowed"
             disabled={submitLoading}
           >
-            <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
-            {submitLoading ? 'Loading...' : 'Add New Category'}
-          </button>
+            <span className="truncate">{submitLoading ? 'Loading...' : 'Add Category'}</span>
+          </button> */}
         </div>
       </div>
 
-      {/* Add/Edit Form */}
-      {showForm && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-semibold text-gray-900">
-              {formMode === 'add' ? 'Add New Category' : 'Edit Category'}
-            </h2>
-            <button
-              onClick={resetForm}
-              className="text-gray-500 hover:text-gray-700 transition duration-200"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </div>
 
-          <div className="space-y-6">
-            {/* Basic Information */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Name *
-                </label>
-                <input
-                  type="text"
-                  id="name"
-                  value={currentCategory.name}
-                  onChange={(e) => handleInputChange('name', e.target.value)}
-                  className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-black transition duration-200 ${
-                    errors.name ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter category name"
-                  disabled={submitLoading}
-                />
-                {errors.name && <p className="text-red-500 text-sm mt-2">{errors.name}</p>}
-              </div>
-            </div>
 
-            {/* Image Upload */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category Image *
-              </label>
-              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  onChange={handleImageUpload}
-                  accept="image/jpeg,image/jpg,image/png,image/webp"
-                  className="hidden"
-                  id="image-upload"
-                  disabled={submitLoading}
-                />
-                <label
-                  htmlFor="image-upload"
-                  className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-4 rounded-lg transition duration-200 flex items-center justify-center shadow-sm"
-                >
-                  <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                  Choose Image
-                </label>
-                <span className="text-sm text-gray-500">
-                  JPEG, PNG, WebP (Max 5MB)
-                </span>
-              </div>
-              {errors.image && <p className="text-red-500 text-sm mt-2">{errors.image}</p>}
-              
-              {/* Image Preview */}
-              {(imagePreview || currentCategory.image) && (
-                <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-3">
-                    Image Preview
-                  </label>
-                  <div className="relative inline-block">
-                    <img 
-                      src={imagePreview || currentCategory.image} 
-                      alt="Preview" 
-                      className="h-40 w-40 object-cover rounded-lg border-2 border-gray-300 shadow-sm"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 text-white rounded-full p-1.5 transition duration-200 shadow-md"
-                      disabled={submitLoading}
-                    >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              )}
-            </div>
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-8 text-center">
+          <div className="inline-block animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600 text-sm sm:text-base font-medium">Loading categories...</p>
+        </div>
+      )}
 
-            {/* Description */}
-            <div>
-              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-2">
-                Description *
-              </label>
-              <textarea
-                id="description"
-                value={currentCategory.description}
-                onChange={(e) => handleInputChange('description', e.target.value)}
-                rows={4}
-                className={`w-full border rounded-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-black transition duration-200 ${
-                  errors.description ? 'border-red-500' : 'border-gray-300'
-                }`}
-                placeholder="Enter category description"
-                disabled={submitLoading}
-              />
-              {errors.description && <p className="text-red-500 text-sm mt-2">{errors.description}</p>}
-            </div>
-
-            {/* Form Actions */}
-            <div className="flex flex-col sm:flex-row gap-3 pt-6 border-t border-gray-200">
-              <button
-                onClick={handleSaveCategory}
-                disabled={submitLoading}
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-8 rounded-lg transition duration-200 flex items-center justify-center shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed flex-1"
-              >
-                {submitLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    {formMode === 'add' ? 'Creating...' : 'Updating...'}
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      {/* Categories DataTable */}
+      {!loading && (
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+          <div className="p-4 sm:p-6">
+            {/* Add Category Button */}
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+              <h2 className="text-lg font-medium text-gray-900">All Categories</h2>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button
+                    onClick={() => {
+                      setFormMode('add');
+                      resetForm();
+                    }}
+                    className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-small py-1 px-4 rounded-lg shadow-sm transition duration-200 flex items-center gap-2 w-full sm:w-auto touch-manipulation disabled:bg-gray-400 disabled:cursor-not-allowed"
+                    disabled={submitLoading}
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    {formMode === 'add' ? 'Add Category' : 'Update Category'}
-                  </>
-                )}
-              </button>
-              <button
-                onClick={resetForm}
-                disabled={submitLoading}
-                className="bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-8 rounded-lg transition duration-200 shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed flex-1"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+                    Add Category
+                  </button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+                  <DialogHeader>
+                    <DialogTitle>Add New Category</DialogTitle>
+                  </DialogHeader>
 
-            {/* Loading State */}
-       {loading && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8 text-center">
-          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-          <p className="mt-4 text-gray-600 text-lg">Loading categories...</p>
-        </div>
-      )}
+                  <div className="space-y-4 sm:space-y-6">
+                    {/* Basic Information */}
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6">
+                      <div>
+                        <label htmlFor="name" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                          Category Name *
+                        </label>
+                        <input
+                          type="text"
+                          id="name"
+                          value={currentCategory.name}
+                          onChange={(e) => handleInputChange('name', e.target.value)}
+                          className={`w-full border rounded-lg px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 transition duration-200 text-xs sm:text-sm ${
+                            errors.name ? 'border-red-500' : 'border-gray-300'
+                          }`}
+                          placeholder="Enter category name"
+                          disabled={submitLoading}
+                        />
+                        {errors.name && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.name}</p>}
+                      </div>
+                    </div>
 
-      {/* Categories Table */}
-      {!loading && categories.length > 0 && (
-        <>
-          <div className="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Category
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {categories.map((category) => (
-                    <tr key={category._id} className="hover:bg-gray-50 transition duration-150">
-                      <td className="px-6 py-4">
-                        <div className="flex items-center space-x-4">
-                          <img 
-                            src={category.image} 
-                            alt={category.name}
-                            className="h-14 w-14 rounded-lg object-cover border border-gray-300 shadow-sm"
-                          />
-                          <div>
-                            <div className="text-sm font-semibold text-gray-900">{category.name}</div>
-                            <div className="text-sm text-gray-600 mt-1 line-clamp-2">{category.description}</div>
-                            {category.isFeatured && (
-                              <span className="inline-flex items-center px-2.5 py-0.5 mt-1 text-xs font-medium text-yellow-800 bg-yellow-100 rounded-full">
-                                Featured
-                              </span>
-                            )}
+                    {/* Image Upload */}
+                    <div className="border-t border-gray-200 pt-4 sm:pt-6">
+                      <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+                        Category Image *
+                      </label>
+                      <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          onChange={handleImageUpload}
+                          accept="image/jpeg,image/jpg,image/png,image/webp"
+                          className="hidden"
+                          id="image-upload"
+                          disabled={submitLoading}
+                        />
+                        <label
+                          htmlFor="image-upload"
+                          className="cursor-pointer bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 sm:py-3 px-3 sm:px-4 rounded-lg transition duration-200 flex items-center justify-center shadow-sm text-xs sm:text-sm touch-manipulation disabled:bg-gray-400 flex-shrink-0"
+                        >
+                          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          Choose Image
+                        </label>
+                        <span className="text-xs text-gray-500">
+                          JPEG, PNG, WebP (Max 5MB)
+                        </span>
+                      </div>
+                      {errors.image && <p className="text-red-500 text-xs sm:text-sm mt-1.5 sm:mt-2">{errors.image}</p>}
+
+                      {/* Image Preview */}
+                      {(imagePreview || currentCategory.image) && (
+                        <div className="mt-4">
+                          <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2 sm:mb-3">
+                            Image Preview
+                          </label>
+                          <div className="relative inline-block">
+                            <img
+                              src={imagePreview || currentCategory.image}
+                              alt="Preview"
+                              className="h-24 w-24 sm:h-32 sm:w-32 md:h-40 md:w-40 object-cover rounded-lg border-2 border-gray-300 shadow-sm"
+                            />
+                            <button
+                              type="button"
+                              onClick={handleRemoveImage}
+                              className="absolute -top-2 -right-2 bg-red-500 hover:bg-red-600 active:bg-red-700 text-white rounded-full p-1 transition duration-200 shadow-md touch-manipulation disabled:bg-red-400"
+                              disabled={submitLoading}
+                            >
+                              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
                           </div>
                         </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <button
-                          onClick={() => handleToggleStatus(category._id, category.status)}
-                          className={`inline-flex items-center px-4 py-2 rounded-full text-sm font-medium transition duration-200 ${
-                            category.status === 'Active' 
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
-                          }`}
-                        >
-                          <div className={`w-2 h-2 rounded-full mr-2 ${
-                            category.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
-                          }`}></div>
-                          {category.status}
-                        </button>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="flex space-x-3">
-                          <button
-                            onClick={() => handleEditCategory(category)}
-                            className="text-blue-600 hover:text-blue-800 font-medium transition duration-200 flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                            </svg>
-                            Edit
-                          </button>
-                          <button
-                            onClick={() => handleDeleteCategory(category._id)}
-                            className="text-red-600 hover:text-red-800 font-medium transition duration-200 flex items-center"
-                          >
-                            <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                            </svg>
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                      )}
+                    </div>
 
-          {/* Summary Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div className="text-3xl font-bold text-blue-600 mb-2">{categories.length}</div>
-              <div className="text-sm font-medium text-gray-700">Total Categories</div>
+                    {/* Description */}
+                    <div className="border-t border-gray-200 pt-4 sm:pt-6">
+                      <label htmlFor="description" className="block text-xs sm:text-sm font-medium text-gray-700 mb-1.5 sm:mb-2">
+                        Description *
+                      </label>
+                      <textarea
+                        id="description"
+                        value={currentCategory.description}
+                        onChange={(e) => handleInputChange('description', e.target.value)}
+                        rows={3}
+                        className={`w-full border rounded-lg px-3 sm:px-4 py-2 sm:py-3 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-gray-900 transition duration-200 text-xs sm:text-sm ${
+                          errors.description ? 'border-red-500' : 'border-gray-300'
+                        }`}
+                        placeholder="Enter category description"
+                        disabled={submitLoading}
+                      />
+                      {errors.description && <p className="text-red-500 text-xs sm:text-sm mt-1">{errors.description}</p>}
+                    </div>
+
+                    {/* Form Actions */}
+                    <div className="flex flex-col xs:flex-row gap-2 xs:gap-3 pt-4 sm:pt-6 border-t border-gray-200">
+                      <button
+                        onClick={handleSaveCategory}
+                        disabled={submitLoading}
+                        className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition duration-200 flex items-center justify-center shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed text-xs sm:text-sm flex-1"
+                      >
+                        {submitLoading ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 sm:h-4 sm:w-4 border-b-2 border-white mr-2"></div>
+                            Creating...
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                            </svg>
+                            Add Category
+                          </>
+                        )}
+                      </button>
+                      <button
+                        onClick={resetForm}
+                        disabled={submitLoading}
+                        className="bg-gray-500 hover:bg-gray-600 active:bg-gray-700 text-white font-medium py-2 sm:py-3 px-4 sm:px-8 rounded-lg transition duration-200 shadow-sm disabled:bg-gray-400 disabled:cursor-not-allowed text-xs sm:text-sm flex-1"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div className="text-3xl font-bold text-green-600 mb-2">
-                {categories.filter(cat => cat.status === 'Active').length}
-              </div>
-              <div className="text-sm font-medium text-gray-700">Active Categories</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div className="text-3xl font-bold text-yellow-600 mb-2">
-                {categories.filter(cat => cat.isFeatured).length}
-              </div>
-              <div className="text-sm font-medium text-gray-700">Featured Categories</div>
-            </div>
-            <div className="bg-white p-6 rounded-lg shadow-sm border border-gray-200 text-center">
-              <div className="text-3xl font-bold text-purple-600 mb-2">
-                {categories.filter(cat => cat.taxRate > 0).length}
-              </div>
-              <div className="text-sm font-medium text-gray-700">Taxable Categories</div>
-            </div>
+
+            <DataTable
+              columns={[
+                {
+                  key: 'category',
+                  label: 'Category',
+                  sortable: true,
+                  render: (value, item) => (
+                    <div className="flex items-center gap-3">
+                      <img
+                        src={item.image}
+                        alt={item.name}
+                        className="h-10 w-10 sm:h-12 sm:w-12 rounded-lg object-cover border border-gray-300 shadow-sm flex-shrink-0"
+                      />
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-gray-900 truncate">{item.name}</div>
+                        <div className="text-xs text-gray-600 line-clamp-1 hidden sm:block">{item.description}</div>
+                        {item.isFeatured && (
+                          <Badge variant="secondary" className="mt-1 text-xs">
+                            Featured
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+                  )
+                },
+                {
+                  key: 'status',
+                  label: 'Status',
+                  sortable: true,
+                  render: (value, item) => (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleToggleStatus(item._id, item.status)}
+                      className={`h-8 px-3 rounded-full text-xs font-medium transition-colors ${
+                        item.status === 'Active'
+                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                          : 'bg-red-100 text-red-800 hover:bg-red-200'
+                      }`}
+                    >
+                      <div className={`w-2 h-2 rounded-full mr-2 ${
+                        item.status === 'Active' ? 'bg-green-500' : 'bg-red-500'
+                      }`}></div>
+                      {item.status}
+                    </Button>
+                  )
+                }
+              ]}
+              data={categories}
+              actions={[
+                {
+                  label: 'Edit',
+                  icon: Edit,
+                  onClick: handleEditCategory,
+                  variant: 'ghost'
+                },
+                {
+                  label: 'Delete',
+                  icon: Trash2,
+                  onClick: (item) => handleDeleteCategory(item._id),
+                  variant: 'destructive'
+                }
+              ]}
+              searchable={true}
+              paginated={true}
+              pageSize={10}
+              loading={loading}
+              emptyMessage="No categories found"
+              searchPlaceholder="Search categories..."
+              className="w-full"
+            />
           </div>
-        </>
+        </div>
+      )}
+
+      {/* Summary Stats */}
+      {!loading && categories.length > 0 && (
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6">
+          <div className="bg-white p-3 sm:p-6 rounded-lg shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow duration-200">
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-blue-600 mb-1 sm:mb-2">{categories.length}</div>
+            <div className="text-xs sm:text-sm font-medium text-gray-700">Total Categories</div>
+          </div>
+          <div className="bg-white p-3 sm:p-6 rounded-lg shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow duration-200">
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-green-600 mb-1 sm:mb-2">
+              {categories.filter(cat => cat.status === 'Active').length}
+            </div>
+            <div className="text-xs sm:text-sm font-medium text-gray-700">Active</div>
+          </div>
+          <div className="bg-white p-3 sm:p-6 rounded-lg shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow duration-200">
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-yellow-600 mb-1 sm:mb-2">
+              {categories.filter(cat => cat.isFeatured).length}
+            </div>
+            <div className="text-xs sm:text-sm font-medium text-gray-700">Featured</div>
+          </div>
+          <div className="bg-white p-3 sm:p-6 rounded-lg shadow-sm border border-gray-200 text-center hover:shadow-md transition-shadow duration-200">
+            <div className="text-lg sm:text-2xl md:text-3xl font-bold text-purple-600 mb-1 sm:mb-2">
+              {categories.filter(cat => cat.taxRate > 0).length}
+            </div>
+            <div className="text-xs sm:text-sm font-medium text-gray-700">Taxable</div>
+          </div>
+        </div>
       )}
 
       {/* Empty State */}
       {!loading && categories.length === 0 && (
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 sm:p-12 text-center">
           <div className="max-w-md mx-auto">
-            <svg className="mx-auto h-16 w-16 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="mx-auto h-12 w-12 sm:h-16 sm:w-16 text-gray-400 mb-3 sm:mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
             </svg>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No categories found</h3>
-            <p className="text-gray-600 mb-6">Get started by creating your first product category.</p>
+            <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-1 sm:mb-2">No categories found</h3>
+            <p className="text-gray-600 mb-4 sm:mb-6 text-xs sm:text-sm">Get started by creating your first product category.</p>
             <button
               onClick={() => {
                 setFormMode('add');
                 setShowForm(true);
               }}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 px-6 rounded-lg transition duration-200 shadow-sm"
+              className="bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white font-medium py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition duration-200 shadow-sm text-xs sm:text-sm touch-manipulation"
             >
               Create First Category
             </button>

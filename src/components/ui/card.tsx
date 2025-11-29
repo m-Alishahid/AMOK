@@ -2,7 +2,7 @@ import * as React from "react"
 
 import { cn } from "@/lib/utils"
 
-function Card({ className, ...props }: React.ComponentProps<"div">) {
+function Card({ className, mobileCard, ...props }: React.ComponentProps<"div"> & { mobileCard?: any }) {
   return (
     <div
       data-slot="card"

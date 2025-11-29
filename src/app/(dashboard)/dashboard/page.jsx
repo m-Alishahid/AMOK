@@ -12,11 +12,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { 
   Package, 
   Tag, 
   Percent, 
-  TrendingUp, 
+  // TrendingUp, 
   Plus, 
   ArrowLeft,
   Activity,
@@ -36,8 +40,26 @@ export default function Dashboard() {
   const [totalOrders, setTotalOrders] = useState(0);
   const [trendingProducts, setTrendingProducts] = useState([]);
   const [loadingStats, setLoadingStats] = useState(true);
-  const [chartView, setChartView] = useState("monthly");
+  const [chartView, setChartView] = useState("daily");
   const [showDiscountManager, setShowDiscountManager] = useState(false);
+  const [isCreateRoleDialogOpen, setIsCreateRoleDialogOpen] = useState(false);
+  const [loadingRole, setLoadingRole] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  // Role form state
+  const [roleForm, setRoleForm] = useState({
+    name: '',
+    description: '',
+    permissions: {
+      user: { view: false, create: false, edit: false, delete: false, change_role: false },
+      category: { view: false, create: false, edit: false, delete: false },
+      product: { view: false, create: false, edit: false, delete: false },
+      order: { view: false, create: false, edit: false, delete: false, update_status: false },
+      inventory: { view: false, create: false, edit: false, delete: false },
+      analytics: { view: false, export: false },
+      settings: { view: false, edit: false }
+    }
+  });
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -47,8 +69,11 @@ export default function Dashboard() {
 
   if (loading || !isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-white">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-blue-600 font-medium">Loading dashboard...</p>
+        </div>
       </div>
     );
   }
@@ -143,13 +168,17 @@ export default function Dashboard() {
 
     if (chartView === "daily") {
       const dataPoints = [];
-      for (let i = 29; i >= 0; i--) {
-        const date = new Date(now);
-        date.setDate(now.getDate() - i);
+      // Start from 9 AM today
+      const startDate = new Date(now);
+      startDate.setHours(9, 0, 0, 0);
+
+      for (let i = 0; i < 24; i++) {
+        const date = new Date(startDate);
+        date.setHours(startDate.getHours() + i);
         dataPoints.push({
-          period: date.toLocaleDateString("en-US", { month: "short", day: "numeric" }),
+          period: date.toLocaleTimeString("en-US", { hour: "numeric", hour12: true }),
           orders: Math.floor(Math.random() * 10) + 1,
-          revenue: Math.floor(Math.random() * 500) + 100,
+          revenue: Math.floor(Math.random() * 5000) + 5000,
         });
       }
       return dataPoints;
@@ -184,6 +213,68 @@ export default function Dashboard() {
 
   const chartData = getChartData();
 
+  // Role form handlers
+  const handleRoleFormChange = (e) => {
+    const { name, value, type, checked } = e.target;
+
+    if (name.startsWith('permissions.')) {
+      const [, module, action] = name.split('.');
+      setRoleForm(prev => ({
+        ...prev,
+        permissions: {
+          ...prev.permissions,
+          [module]: {
+            ...prev.permissions[module],
+            [action]: type === 'checkbox' ? checked : value
+          }
+        }
+      }));
+    } else {
+      setRoleForm(prev => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleRoleSubmit = async (e) => {
+    e.preventDefault();
+    setLoadingRole(true);
+
+    try {
+      const response = await fetch('/api/roles', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(roleForm),
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        setMessage({ type: 'success', text: 'Role created successfully' });
+        setRoleForm({
+          name: '',
+          description: '',
+          permissions: {
+            user: { view: false, create: false, edit: false, delete: false, change_role: false },
+            category: { view: false, create: false, edit: false, delete: false },
+            product: { view: false, create: false, edit: false, delete: false },
+            order: { view: false, create: false, edit: false, delete: false, update_status: false },
+            inventory: { view: false, create: false, edit: false, delete: false },
+            analytics: { view: false, export: false },
+            settings: { view: false, edit: false }
+          }
+        });
+        setIsCreateRoleDialogOpen(false);
+      } else {
+        setMessage({ type: 'error', text: data.error || 'Failed to create role' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: 'Failed to create role' });
+    } finally {
+      setLoadingRole(false);
+    }
+  };
+
   if (showDiscountManager) {
     return (
       <div className="space-y-6">
@@ -204,151 +295,554 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 px-4 sm:px-0">
+    <div className="w-full space-y-3 sm:space-y-4 md:space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold tracking-tight">Dashboard</h1>
-          <p className="text-xs sm:text-sm lg:text-base text-muted-foreground">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg xs:text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold tracking-tight truncate">Dashboard</h1>
+          <p className="text-xs sm:text-sm md:text-base text-muted-foreground truncate mt-1">
             Welcome back, Admin • {new Date().toLocaleDateString()}
           </p>
         </div>
         <Button
           onClick={() => setShowDiscountManager(true)}
-          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 py-2 sm:py-3 text-sm"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 active:bg-blue-800 py-2 sm:py-2.5 px-3 sm:px-4 text-xs sm:text-sm font-medium rounded-lg touch-manipulation transition-all duration-150 shadow-sm flex-shrink-0"
         >
-          <Percent className="h-4 w-4" />
-          Manage Discounts
+          <Percent className="h-4 w-4 flex-shrink-0" />
+          <span className="truncate">Manage Discounts</span>
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-blue-900">Total Products</CardTitle>
-            <Package className="h-4 w-4 text-blue-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-blue-900">{loadingStats ? "..." : totalProducts}</div>
-            <p className="text-xs text-blue-700">
-              {discountedProducts} on discount
-            </p>
-          </CardContent>
-        </Card>
 
-        <Card className="border-green-200 bg-green-50/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-green-900">Active Discounts</CardTitle>
-            <Percent className="h-4 w-4 text-green-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-900">{loadingStats ? "..." : activeDiscounts}</div>
-            <p className="text-xs text-green-700">
-              Running promotions
-            </p>
-          </CardContent>
-        </Card>
 
-        <Card className="border-purple-200 bg-purple-50/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-purple-900">Total Categories</CardTitle>
-            <Tag className="h-4 w-4 text-purple-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-purple-900">{loadingStats ? "..." : totalCategories}</div>
-            <p className="text-xs text-purple-700">
-              Product categories
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card className="border-orange-200 bg-orange-50/50">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-orange-900">Total Orders</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-orange-600" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-orange-900">{loadingStats ? "..." : totalOrders}</div>
-            <p className="text-xs text-orange-700">
-              All time orders
-            </p>
-          </CardContent>
-        </Card>
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        {[
+          {
+            label: "Total Products",
+            value: loadingStats ? "..." : totalProducts,
+            subtext: `${discountedProducts} on discount`,
+            icon: Package,
+            color: "text-blue-600",
+            bg: "bg-gradient-to-br from-blue-50 to-blue-100",
+            border: "border-blue-200",
+            // trend: "+12%",
+            // trendColor: "text-green-600",
+          },
+          {
+            label: "Active Discounts",
+            value: loadingStats ? "..." : activeDiscounts,
+            subtext: "Running promotions",
+            icon: Percent,
+            color: "text-green-600",
+            bg: "bg-gradient-to-br from-green-50 to-green-100",
+            border: "border-green-200",
+            // trend: "+5%",
+            // trendColor: "text-green-600",
+          },
+          {
+            label: "Total Categories",
+            value: loadingStats ? "..." : totalCategories,
+            subtext: "Product categories",
+            icon: Tag,
+            color: "text-purple-600",
+            bg: "bg-gradient-to-br from-purple-50 to-purple-100",
+            border: "border-purple-200",
+            // trend: "0%",
+            // trendColor: "text-gray-500",
+          },
+          {
+            label: "Total Orders",
+            value: loadingStats ? "..." : totalOrders,
+            subtext: "All time orders",
+            icon: ShoppingCart,
+            color: "text-orange-600",
+            bg: "bg-gradient-to-br from-orange-50 to-orange-100",
+            border: "border-orange-200",
+            // trend: "+18%",
+            // trendColor: "text-green-600",
+          },
+        ].map((stat, index) => (
+          <div
+            key={index}
+            className={`${stat.bg} ${stat.border} rounded-xl border p-4 sm:p-6 shadow-sm hover:shadow-lg hover:scale-105 transition-all duration-300 cursor-pointer group`}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <div className={`p-2 rounded-lg ${stat.bg} group-hover:bg-white/50 transition-colors duration-300`}>
+                <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+              </div>
+              <div className={`text-xs font-medium ${stat.trendColor} flex items-center gap-1`}>
+                {/* <TrendingUp className="h-3 w-3" /> */}
+                {stat.trend}
+              </div>
+            </div>
+            <div>
+              <p className="text-xs sm:text-sm text-gray-600 font-medium">{stat.label}</p>
+              <p className={`text-xl sm:text-3xl font-bold ${stat.color} mt-1 sm:mt-2`}>
+                {stat.value}
+              </p>
+              <p className="text-xs text-gray-500 mt-1">{stat.subtext}</p>
+            </div>
+          </div>
+        ))}
       </div>
+
 
       {/* Quick Actions */}
       <Card className="border-blue-100 bg-blue-50/30">
-        <CardHeader>
-          <CardTitle className="text-blue-900">Quick Actions</CardTitle>
-          <CardDescription className="text-blue-700">Manage your store quickly</CardDescription>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base text-blue-900">Quick Actions</CardTitle>
+          <CardDescription className="text-xs sm:text-sm text-blue-700">Manage your store quickly</CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 grid-cols-2 sm:grid-cols-4">
+        <CardContent className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6">
+          <div className="grid gap-2 sm:gap-3 md:gap-4 grid-cols-2 sm:grid-cols-4">
             <Button
               onClick={() => router.push('/products/add')}
-              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
+              className="h-auto flex-col items-center justify-center p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm active:bg-blue-100 transition-colors duration-150 touch-manipulation rounded-lg"
             >
-              <Plus className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="font-semibold text-center">Add Product</span>
-              <span className="text-xs text-blue-600 text-center hidden sm:block">Create new product</span>
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <span className="font-semibold text-center text-xs">Add Product</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">Create</span>
             </Button>
 
             <Button
               onClick={() => setShowDiscountManager(true)}
-              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
+              className="h-auto flex-col items-center justify-center p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm active:bg-blue-100 transition-colors duration-150 touch-manipulation rounded-lg"
             >
-              <Percent className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="font-semibold text-center">Create Discount</span>
-              <span className="text-xs text-blue-600 text-center hidden sm:block">Add special offer</span>
+              <Percent className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <span className="font-semibold text-center text-xs">Discount</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">Create</span>
             </Button>
 
             <Button
               onClick={() => router.push('/categories')}
-              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
+              className="h-auto flex-col items-center justify-center p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm active:bg-blue-100 transition-colors duration-150 touch-manipulation rounded-lg"
             >
-              <FolderOpen className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="font-semibold text-center">Manage Categories</span>
-              <span className="text-xs text-blue-600 text-center hidden sm:block">View all categories</span>
+              <FolderOpen className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <span className="font-semibold text-center text-xs">Categories</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">Manage</span>
             </Button>
 
             <Button
               onClick={() => router.push('/products')}
-              className="h-auto flex-col items-center justify-center p-3 sm:p-4 space-y-2 bg-white hover:bg-blue-50 border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm"
+              className="h-auto flex-col items-center justify-center p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm active:bg-blue-100 transition-colors duration-150 touch-manipulation rounded-lg"
             >
-              <Package className="h-5 w-5 sm:h-6 sm:w-6" />
-              <span className="font-semibold text-center">View Products</span>
-              <span className="text-xs text-blue-600 text-center hidden sm:block">All products list</span>
+              <Package className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+              <span className="font-semibold text-center text-xs">Products</span>
+              <span className="text-xs text-blue-600 text-center hidden sm:block">View All</span>
             </Button>
+
+            <Dialog open={isCreateRoleDialogOpen} onOpenChange={setIsCreateRoleDialogOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  className="h-auto flex-col items-center justify-center p-2 sm:p-3 md:p-4 space-y-1 sm:space-y-2 bg-white hover:bg-blue-50 border border-blue-600 text-blue-600 hover:text-blue-700 text-xs sm:text-sm active:bg-blue-100 transition-colors duration-150 touch-manipulation rounded-lg"
+                >
+                  <Users className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+                  <span className="font-semibold text-center text-xs">Create Role</span>
+                  <span className="text-xs text-blue-600 text-center hidden sm:block">Add</span>
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Role</DialogTitle>
+                  <DialogDescription>
+                    Define a new role with specific permissions for your system.
+                  </DialogDescription>
+                </DialogHeader>
+
+                {message.text && (
+                  <Alert className={message.type === 'success' ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50'}>
+                    <AlertDescription className={message.type === 'success' ? 'text-green-700' : 'text-red-700'}>
+                      {message.text}
+                    </AlertDescription>
+                  </Alert>
+                )}
+
+                <form onSubmit={handleRoleSubmit} className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Role Name</Label>
+                    <Input
+                      id="name"
+                      name="name"
+                      value={roleForm.name}
+                      onChange={handleRoleFormChange}
+                      placeholder="Enter role name"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Input
+                      id="description"
+                      name="description"
+                      value={roleForm.description}
+                      onChange={handleRoleFormChange}
+                      placeholder="Enter role description"
+                    />
+                  </div>
+
+                  <div className="space-y-4">
+                    <Label className="text-base font-semibold">Permissions</Label>
+
+                    {/* User Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">User Management</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.user.view"
+                            checked={roleForm.permissions.user.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.user.create"
+                            checked={roleForm.permissions.user.create}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Create</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.user.edit"
+                            checked={roleForm.permissions.user.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.user.delete"
+                            checked={roleForm.permissions.user.delete}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Delete</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.user.change_role"
+                            checked={roleForm.permissions.user.change_role}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Change Role</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Category Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Category Management</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.category.view"
+                            checked={roleForm.permissions.category.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.category.create"
+                            checked={roleForm.permissions.category.create}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Create</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.category.edit"
+                            checked={roleForm.permissions.category.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.category.delete"
+                            checked={roleForm.permissions.category.delete}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Delete</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Product Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Product Management</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.product.view"
+                            checked={roleForm.permissions.product.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.product.create"
+                            checked={roleForm.permissions.product.create}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Create</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.product.edit"
+                            checked={roleForm.permissions.product.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.product.delete"
+                            checked={roleForm.permissions.product.delete}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Delete</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Order Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Order Management</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.order.view"
+                            checked={roleForm.permissions.order.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.order.create"
+                            checked={roleForm.permissions.order.create}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Create</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.order.edit"
+                            checked={roleForm.permissions.order.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.order.delete"
+                            checked={roleForm.permissions.order.delete}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Delete</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.order.update_status"
+                            checked={roleForm.permissions.order.update_status}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Update Status</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Inventory Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Inventory Management</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.inventory.view"
+                            checked={roleForm.permissions.inventory.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.inventory.create"
+                            checked={roleForm.permissions.inventory.create}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Create</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.inventory.edit"
+                            checked={roleForm.permissions.inventory.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.inventory.delete"
+                            checked={roleForm.permissions.inventory.delete}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Delete</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Analytics Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Analytics</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.analytics.view"
+                            checked={roleForm.permissions.analytics.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.analytics.export"
+                            checked={roleForm.permissions.analytics.export}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Export</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Settings Permissions */}
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">Settings</h4>
+                      <div className="grid grid-cols-2 gap-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.settings.view"
+                            checked={roleForm.permissions.settings.view}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">View</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            name="permissions.settings.edit"
+                            checked={roleForm.permissions.settings.edit}
+                            onChange={handleRoleFormChange}
+                            className="rounded"
+                          />
+                          <span className="text-sm">Edit</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end space-x-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => setIsCreateRoleDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      disabled={loadingRole}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      {loadingRole ? 'Creating...' : 'Create Role'}
+                    </Button>
+                  </div>
+                </form>
+              </DialogContent>
+            </Dialog>
           </div>
         </CardContent>
       </Card>
 
       {/* Chart Section */}
-      <Card className="border-blue-100 bg-white">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <Card className="border-blue-100 bg-gradient-to-br from-white to-blue-50/30 shadow-lg hover:shadow-xl transition-shadow duration-300">
+        <CardHeader className="pb-3 sm:pb-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
             <div>
-              <CardTitle className="text-blue-900">Sales Analytics</CardTitle>
-              <CardDescription className="text-blue-700">Track your sales performance</CardDescription>
+              <CardTitle className="text-sm sm:text-base text-blue-900 font-semibold">Sales Analytics</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-blue-700">Track your sales performance</CardDescription>
             </div>
-            <Tabs value={chartView} onValueChange={setChartView} className="w-auto">
-              <TabsList className="bg-blue-100">
-                <TabsTrigger 
-                  value="daily" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+            <Tabs value={chartView} onValueChange={setChartView} className="w-full sm:w-auto">
+              <TabsList className="bg-blue-100 h-8 text-xs w-full sm:w-auto grid grid-cols-3 sm:flex">
+                <TabsTrigger
+                  value="daily"
+                  className="px-2 py-1 text-xs data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200 hover:bg-blue-200"
                 >
                   Daily
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="weekly" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                <TabsTrigger
+                  value="weekly"
+                  className="px-2 py-1 text-xs data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200 hover:bg-blue-200"
                 >
                   Weekly
                 </TabsTrigger>
-                <TabsTrigger 
-                  value="monthly" 
-                  className="data-[state=active]:bg-blue-600 data-[state=active]:text-white"
+                <TabsTrigger
+                  value="monthly"
+                  className="px-2 py-1 text-xs data-[state=active]:bg-blue-600 data-[state=active]:text-white transition-all duration-200 hover:bg-blue-200"
                 >
                   Monthly
                 </TabsTrigger>
@@ -356,44 +850,89 @@ export default function Dashboard() {
             </Tabs>
           </div>
         </CardHeader>
-        <CardContent>
-          <div className="h-64 sm:h-80">
+        <CardContent className="px-2 sm:px-4 md:px-6 pb-4">
+          <div className="h-56 sm:h-64 md:h-80 lg:h-96 w-full">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+              <AreaChart
+                data={chartData}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 0,
+                  bottom: 0,
+                }}
+              >
+                <defs>
+                  <linearGradient id="ordersGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.1}/>
+                  </linearGradient>
+                  <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#1e40af" stopOpacity={0.8}/>
+                    <stop offset="95%" stopColor="#1e40af" stopOpacity={0.1}/>
+                  </linearGradient>
+                </defs>
+                <CartesianGrid
+                  strokeDasharray="3 3"
+                  className="opacity-30 stroke-blue-200"
+                  horizontal={true}
+                  vertical={false}
+                />
                 <XAxis
                   dataKey="period"
-                  tick={{ fontSize: 12 }}
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  axisLine={false}
+                  tickLine={false}
                   interval="preserveStartEnd"
+                  className="text-xs"
                 />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Tooltip 
+                <YAxis
+                  domain={[5000, 'dataMax']}
+                  ticks={[5000, 10000, 15000, 20000, 25000]}
+                  tick={{ fontSize: 10, fill: '#6b7280' }}
+                  axisLine={false}
+                  tickLine={false}
+                  className="text-xs"
+                />
+                <Tooltip
                   formatter={(value, name) => {
-                    if (name === 'revenue') return [`$${value}`, 'Revenue'];
-                    return [value, 'Orders'];
+                    if (name === 'revenue') return [`$${value.toLocaleString()}`, 'Revenue'];
+                    return [value.toLocaleString(), 'Orders'];
                   }}
-                  contentStyle={{ 
-                    backgroundColor: '#1e40af', 
-                    border: 'none', 
-                    borderRadius: '8px',
-                    color: 'white'
+                  labelStyle={{ color: '#1f2937', fontWeight: '600' }}
+                  contentStyle={{
+                    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '12px',
+                    boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                    color: '#1f2937',
+                    fontSize: '13px',
+                    fontWeight: '500',
+                    backdropFilter: 'blur(8px)'
                   }}
+                  cursor={{ stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '5 5' }}
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="orders" 
+                <Area
+                  type="monotone"
+                  dataKey="orders"
                   stackId="1"
-                  stroke="#3b82f6" 
-                  fill="#3b82f6" 
-                  fillOpacity={0.6} 
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  fill="url(#ordersGradient)"
+                  fillOpacity={1}
+                  animationDuration={1000}
+                  animationEasing="ease-out"
                 />
-                <Area 
-                  type="monotone" 
-                  dataKey="revenue" 
+                <Area
+                  type="monotone"
+                  dataKey="revenue"
                   stackId="2"
-                  stroke="#1e40af" 
-                  fill="#1e40af" 
-                  fillOpacity={0.4} 
+                  stroke="#1e40af"
+                  strokeWidth={2}
+                  fill="url(#revenueGradient)"
+                  fillOpacity={1}
+                  animationDuration={1200}
+                  animationEasing="ease-out"
                 />
               </AreaChart>
             </ResponsiveContainer>
@@ -402,30 +941,30 @@ export default function Dashboard() {
       </Card>
 
       {/* Bottom Section */}
-      <div className="grid gap-4 sm:gap-6 grid-cols-1 md:grid-cols-2">
+      <div className="grid gap-3 sm:gap-4 md:gap-6 grid-cols-1 md:grid-cols-2">
         {/* Recent Activity */}
         <Card className="border-blue-100 bg-white">
-          <CardHeader>
-            <CardTitle className="text-blue-900">Recent Activity</CardTitle>
-            <CardDescription className="text-blue-700">Latest activities in your store</CardDescription>
+          <CardHeader className="pb-3 sm:pb-4">
+            <CardTitle className="text-sm sm:text-base text-blue-900">Recent Activity</CardTitle>
+            <CardDescription className="text-xs sm:text-sm text-blue-700">Latest activities in your store</CardDescription>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
+          <CardContent className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6">
+            <div className="space-y-2 sm:space-y-3 md:space-y-4 max-h-72 overflow-y-auto">
               {recentActivities.map((activity) => (
-                <div key={activity.id} className="flex items-center space-x-3 sm:space-x-4 p-3 rounded-lg bg-blue-50 border border-blue-100">
-                  <div className={`rounded-full p-2 ${
+                <div key={activity.id} className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-blue-50 border border-blue-100 hover:bg-blue-100 transition-colors duration-150">
+                  <div className={`rounded-full p-1 sm:p-2 flex-shrink-0 ${
                     activity.color === 'blue' ? 'bg-blue-100' :
                     activity.color === 'green' ? 'bg-green-100' :
                     activity.color === 'purple' ? 'bg-purple-100' :
                     'bg-orange-100'
                   }`}>
-                    <span className="text-sm">{activity.icon}</span>
+                    <span className="text-xs sm:text-sm">{activity.icon}</span>
                   </div>
-                  <div className="flex-1 space-y-1 min-w-0">
-                    <p className="text-sm font-medium leading-none text-blue-900 truncate">{activity.action}</p>
-                    <p className="text-sm text-blue-700 truncate">{activity.details}</p>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs sm:text-sm font-medium leading-tight text-blue-900 truncate">{activity.action}</p>
+                    <p className="text-xs text-blue-700 truncate">{activity.details}</p>
                   </div>
-                  <div className="text-xs sm:text-sm text-blue-600 whitespace-nowrap">{activity.timestamp}</div>
+                  <div className="text-xs text-blue-600 whitespace-nowrap flex-shrink-0">{activity.timestamp}</div>
                 </div>
               ))}
             </div>
@@ -434,38 +973,38 @@ export default function Dashboard() {
 
         {/* Discounts Overview */}
         <Card className="border-blue-100 bg-white">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <div>
-              <CardTitle className="text-blue-900">Active Discounts</CardTitle>
-              <CardDescription className="text-blue-700">Currently running promotions</CardDescription>
+          <CardHeader className="pb-3 sm:pb-4 flex flex-row items-start sm:items-center justify-between">
+            <div className="min-w-0 flex-1">
+              <CardTitle className="text-sm sm:text-base text-blue-900">Active Discounts</CardTitle>
+              <CardDescription className="text-xs sm:text-sm text-blue-700">Currently running promotions</CardDescription>
             </div>
             <Button
               onClick={() => setShowDiscountManager(true)}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 text-white text-xs px-2 py-1.5 sm:px-3 sm:py-2 rounded-lg flex-shrink-0"
               size="sm"
             >
               View All
             </Button>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-3 sm:px-4 md:px-6 pb-3 sm:pb-4 md:pb-6">
             {loadingStats ? (
-              <div className="space-y-4">
+              <div className="space-y-3">
                 {[1, 2, 3].map(i => (
-                  <div key={i} className="animate-pulse p-4 bg-blue-100 rounded-lg">
-                    <div className="h-4 bg-blue-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-3 bg-blue-200 rounded w-1/2"></div>
+                  <div key={i} className="animate-pulse p-3 bg-blue-100 rounded-lg">
+                    <div className="h-3 bg-blue-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-2 bg-blue-200 rounded w-1/2"></div>
                   </div>
                 ))}
               </div>
             ) : activeDiscounts > 0 ? (
-              <div className="space-y-4">
-                <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-blue-900">Summer Sale</h3>
-                      <p className="text-sm text-blue-700">20% off on all products</p>
+              <div className="space-y-3 max-h-72 overflow-y-auto">
+                <div className="p-3 bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm text-blue-900">Summer Sale</h3>
+                      <p className="text-xs text-blue-700">20% off on all products</p>
                     </div>
-                    <Badge className="bg-blue-600 text-white">
+                    <Badge className="bg-blue-600 text-white text-xs flex-shrink-0">
                       Active
                     </Badge>
                   </div>
@@ -474,13 +1013,13 @@ export default function Dashboard() {
                   </div>
                 </div>
 
-                <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h3 className="font-semibold text-green-900">Clearance</h3>
-                      <p className="text-sm text-green-700">Up to 50% off selected items</p>
+                <div className="p-3 bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <h3 className="font-semibold text-sm text-green-900">Clearance</h3>
+                      <p className="text-xs text-green-700">Up to 50% off selected items</p>
                     </div>
-                    <Badge className="bg-green-600 text-white">
+                    <Badge className="bg-green-600 text-white text-xs flex-shrink-0">
                       Active
                     </Badge>
                   </div>
@@ -491,22 +1030,22 @@ export default function Dashboard() {
 
                 <Button
                   onClick={() => setShowDiscountManager(true)}
-                  className="w-full bg-blue-600 hover:bg-blue-700"
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white text-xs py-2 rounded-lg"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1.5" />
                   Create New Discount
                 </Button>
               </div>
             ) : (
-              <div className="text-center p-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50">
-                <Percent className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                <h3 className="font-semibold text-lg mb-2 text-blue-900">No Active Discounts</h3>
-                <p className="text-blue-700 mb-4">Create your first discount to boost sales</p>
+              <div className="text-center p-6 sm:p-8 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50">
+                <Percent className="h-10 w-10 sm:h-12 sm:w-12 mx-auto mb-3 text-blue-600" />
+                <h3 className="font-semibold text-sm sm:text-base mb-1 text-blue-900">No Active Discounts</h3>
+                <p className="text-xs sm:text-sm text-blue-700 mb-4">Create your first discount to boost sales</p>
                 <Button 
                   onClick={() => setShowDiscountManager(true)}
-                  className="bg-blue-600 hover:bg-blue-700"
+                  className="bg-blue-600 hover:bg-blue-700 text-white text-xs py-1.5 px-3 rounded-lg"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-3 w-3 mr-1" />
                   Create Discount
                 </Button>
               </div>

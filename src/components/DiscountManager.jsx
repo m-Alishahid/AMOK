@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import DataTable from "@/components/DataTable";
 import { Switch } from "@/components/ui/switch";
 import { 
   ArrowLeft, 
@@ -287,7 +287,7 @@ export default function DiscountManager() {
     const statusConfig = {
       Active: { class: "bg-green-100 text-green-800 border-green-200", label: 'Active', icon: CheckCircle },
       Inactive: { class: "bg-gray-100 text-gray-800 border-gray-200", label: 'Inactive', icon: Pause },
-      Expired: { class: "bg-red-100 text-red-800 border-red-200", label: 'Expired', icon: Clock },
+      Expired: { class: "bg-red-100 hover-red-200 text-red-800 border-red-200", label: 'Expired', icon: Clock },
       Scheduled: { class: "bg-blue-100 text-blue-800 border-blue-200", label: 'Scheduled', icon: Calendar }
     };
 
@@ -682,26 +682,17 @@ export default function DiscountManager() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Header */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-blue-900">Discount Management</h1>
-          <p className="text-blue-700 mt-1">Create and manage product discounts and promotions</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-blue-900">Discount Management</h1>
+          <p className="text-blue-700 mt-1 text-sm sm:text-base">Create and manage product discounts and promotions</p>
         </div>
-        <div className="flex gap-3">
-          {/* <Button
-            onClick={updateDiscountStatuses}
-            disabled={loading}
-            variant="default"
-            className="flex items-center gap-2 bg-orange-600 hover:bg-orange-700"
-          >
-            <RefreshCw className="h-4 w-4" />
-            {loading ? 'Updating...' : 'Check Expiry'}
-          </Button> */}
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <Button
             onClick={() => setShowForm(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 w-full sm:w-auto"
           >
             <Plus className="h-4 w-4" />
             Create Discount
@@ -709,271 +700,231 @@ export default function DiscountManager() {
         </div>
       </div>
 
-      {/* Statistics Summary */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="border-blue-100 bg-blue-50/30">
-          <CardContent className="pt-6">
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-6 mb-6 sm:mb-8">
+        {[
+          {
+            label: "Total Discounts",
+            value: stats.total,
+            icon: Tag,
+            color: "text-blue-600",
+            bg: "bg-blue-50",
+          },
+          {
+            label: "Active",
+            value: stats.active,
+            icon: CheckCircle,
+            color: "text-green-600",
+            bg: "bg-green-50",
+          },
+          {
+            label: "Scheduled",
+            value: stats.scheduled,
+            icon: Clock,
+            color: "text-orange-600",
+            bg: "bg-orange-50",
+          },
+          {
+            label: "Expired/Inactive",
+            value: stats.expired,
+            icon: AlertTriangle,
+            color: "text-red-600",
+            bg: "bg-red-50",
+          },
+          {
+            label: "Products Affected",
+            value: stats.totalProductsAffected,
+            icon: Users,
+            color: "text-purple-600",
+            bg: "bg-purple-50",
+          },
+          {
+            label: "Total Discount",
+            value: `$${stats.totalDiscountAmount.toFixed(2)}`,
+            icon: DollarSign,
+            color: "text-amber-600",
+            bg: "bg-amber-50",
+          },
+        ].map((stat, index) => (
+          <div
+            key={index}
+            className={`${stat.bg} rounded-xl border border-gray-100 p-4 sm:p-6 shadow-sm hover:shadow-md transition-shadow duration-200`}
+          >
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-blue-900">Total Discounts</p>
-                <p className="text-2xl font-bold text-blue-600">{stats.total}</p>
-              </div>
-              <Tag className="h-8 w-8 text-blue-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-green-100 bg-green-50/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-green-900">Active</p>
-                <p className="text-2xl font-bold text-green-600">{stats.active}</p>
-              </div>
-              <CheckCircle className="h-8 w-8 text-green-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-orange-100 bg-orange-50/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-orange-900">Scheduled</p>
-                <p className="text-2xl font-bold text-orange-600">{stats.scheduled}</p>
-              </div>
-              <Clock className="h-8 w-8 text-orange-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-red-100 bg-red-50/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-red-900">Expired/Inactive</p>
-                <p className="text-2xl font-bold text-red-600">{stats.expired}</p>
-              </div>
-              <AlertTriangle className="h-8 w-8 text-red-600" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Additional Stats */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card className="border-purple-100 bg-purple-50/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-purple-900">Total Products Affected</p>
-                <p className="text-2xl font-bold text-purple-600">{stats.totalProductsAffected}</p>
-              </div>
-              <Users className="h-8 w-8 text-purple-600" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-amber-100 bg-amber-50/30">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-amber-900">Total Discount Amount</p>
-                <p className="text-2xl font-bold text-amber-600">
-                  ${stats.totalDiscountAmount.toFixed(2)}
+                <p className="text-xs sm:text-sm text-gray-600 font-medium">{stat.label}</p>
+                <p className={`text-xl sm:text-3xl font-bold ${stat.color} mt-1 sm:mt-2`}>
+                  {stat.value}
                 </p>
               </div>
-              <TrendingUp className="h-8 w-8 text-amber-600" />
+              <div className={`p-2 rounded-lg ${stat.bg}`}>
+                <stat.icon className={`h-5 w-5 sm:h-6 sm:w-6 ${stat.color}`} />
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        ))}
       </div>
 
       {/* Discounts Table */}
-      <Card className="border-blue-100 bg-blue-50/30">
-        <CardHeader className="bg-blue-100/50 rounded-t-lg">
-          <CardTitle className="text-blue-900 flex items-center gap-2">
-            <Tag className="h-5 w-5" />
-            All Discounts
-          </CardTitle>
-          <CardDescription className="text-blue-700">
-            Manage all your discounts and promotions
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="pt-6">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-              <p className="text-blue-700 mt-4">Loading discounts...</p>
+      <div className="bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="p-4 sm:p-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div>
+              <h2 className="text-lg font-medium text-gray-900">All Discounts</h2>
+              <p className="text-gray-600 mt-1 text-sm">Manage your discount campaigns</p>
             </div>
-          ) : (
-            <>
-              <Table>
-                <TableHeader>
-                  <TableRow className="bg-blue-100/50 hover:bg-blue-100/50">
-                    <TableHead className="text-blue-900 font-bold">Name</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Type</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Value</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Scope</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Products</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Status</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Expires</TableHead>
-                    <TableHead className="text-blue-900 font-bold">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {discounts.map((discount) => {
-                    const statusBadge = getStatusBadge(discount);
-                    const StatusIcon = statusBadge.icon;
-                    
-                    return (
-                      <TableRow key={discount._id} className="border-blue-100 hover:bg-blue-50/50">
-                        <TableCell className="font-medium text-blue-900">
-                          <div>
-                            <p className="font-semibold">{discount.name}</p>
-                            {discount.description && (
-                              <p className="text-sm text-blue-700">{discount.description}</p>
-                            )}
-                            <div className="flex items-center gap-2 mt-1">
-                              <Badge variant="outline" className="text-xs">
-                                {discount.applicationMethod || 'best_price'}
-                              </Badge>
-                              {discount.autoRemove && (
-                                <Badge variant="outline" className="text-xs bg-green-50">
-                                  Auto-remove
-                                </Badge>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={
-                            discount.discountType === 'percentage' 
-                              ? "bg-blue-100 text-blue-800 border-blue-200"
-                              : "bg-green-100 text-green-800 border-green-200"
-                          }>
-                            {discount.discountType === 'percentage' ? (
-                              <Percent className="h-3 w-3 mr-1" />
-                            ) : (
-                              <DollarSign className="h-3 w-3 mr-1" />
-                            )}
-                            {discount.discountType === 'percentage' ? 'Percentage' : 'Fixed'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <span className="font-semibold text-blue-900">
-                            {discount.discountType === 'percentage' 
-                              ? `${discount.discountValue}%`
-                              : `$${discount.discountValue}`
-                            }
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
-                            {discount.scope}
-                          </Badge>
-                          {discount.scope === 'category' && discount.category && (
-                            <p className="text-xs text-purple-600 mt-1">
-                              {discount.category.name}
-                            </p>
-                          )}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Package className="h-4 w-4 text-blue-600" />
-                            <span className="text-blue-900 font-medium">
-                              {discount.totalProducts || 0}
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge className={statusBadge.class}>
-                            <StatusIcon className="h-3 w-3 mr-1" />
-                            {statusBadge.label}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Calendar className="h-4 w-4 text-blue-600" />
-                            <div>
-                              <span className="text-blue-900 font-medium block">
-                                {new Date(discount.endDate).toLocaleDateString()}
-                              </span>
-                              <span className="text-xs text-blue-600">
-                                {new Date(discount.endDate).toLocaleTimeString()}
-                              </span>
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleEditDiscount(discount)}
-                              className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
-                              title="Edit discount"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            
-                            {(discount.status === 'Active' || discount.status === 'Scheduled') && !isExpired(discount.endDate) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => handleToggleStatus(discount._id, discount.status)}
-                                className={
-                                  discount.status === 'Active' 
-                                    ? "text-orange-600 hover:text-orange-800 hover:bg-orange-50"
-                                    : "text-green-600 hover:text-green-800 hover:bg-green-50"
-                                }
-                                title={discount.status === 'Active' ? 'Deactivate' : 'Activate'}
-                              >
-                                {discount.status === 'Active' ? (
-                                  <Pause className="h-4 w-4" />
-                                ) : (
-                                  <Play className="h-4 w-4" />
-                                )}
-                              </Button>
-                            )}
-                            
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveDiscount(discount._id)}
-                              className="text-red-600 hover:text-red-800 hover:bg-red-50"
-                              title="Remove discount"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+          </div>
 
-              {discounts.length === 0 && (
-                <div className="text-center py-12 border-2 border-dashed border-blue-200 rounded-lg bg-blue-50/50">
-                  <Tag className="h-12 w-12 mx-auto mb-4 text-blue-600" />
-                  <h3 className="font-semibold text-lg mb-2 text-blue-900">No Discounts Found</h3>
-                  <p className="text-blue-700 mb-4">
-                    Get started by creating your first discount to boost sales
-                  </p>
-                  <Button 
-                    onClick={() => setShowForm(true)}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Your First Discount
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+          <DataTable
+            columns={[
+              {
+                key: "name",
+                label: "Name",
+                sortable: true,
+                render: (value, discount) => (
+                  <div>
+                    <p className="font-semibold">{value}</p>
+                    {discount.description && (
+                      <p className="text-sm text-gray-600">{discount.description}</p>
+                    )}
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {discount.applicationMethod || 'best_price'}
+                      </Badge>
+                      {discount.autoRemove && (
+                        <Badge variant="outline" className="text-xs bg-green-50">
+                          Auto-remove
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                ),
+              },
+              {
+                key: "discountType",
+                label: "Type",
+                sortable: true,
+                render: (value, discount) => (
+                  <Badge className={
+                    value === 'percentage'
+                      ? "bg-blue-100 text-blue-800 border-blue-200"
+                      : "bg-green-100 text-green-800 border-green-200"
+                  }>
+                    {value === 'percentage' ? (
+                      <Percent className="h-3 w-3 mr-1" />
+                    ) : (
+                      <DollarSign className="h-3 w-3 mr-1" />
+                    )}
+                    {value === 'percentage' ? 'Percentage' : 'Fixed'}
+                  </Badge>
+                ),
+              },
+              {
+                key: "discountValue",
+                label: "Value",
+                sortable: true,
+                render: (value, discount) => (
+                  <span className="font-semibold">
+                    {discount.discountType === 'percentage'
+                      ? `${value}%`
+                      : `$${value}`
+                    }
+                  </span>
+                ),
+              },
+              {
+                key: "scope",
+                label: "Scope",
+                sortable: true,
+                render: (value, discount) => (
+                  <div>
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+                      {value}
+                    </Badge>
+                    {value === 'category' && discount.category && (
+                      <p className="text-xs text-purple-600 mt-1">
+                        {discount.category.name}
+                      </p>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: "totalProducts",
+                label: "Products",
+                sortable: true,
+                render: (value) => (
+                  <div className="flex items-center gap-2">
+                    <Package className="h-4 w-4 text-blue-600" />
+                    <span className="font-medium">{value || 0}</span>
+                  </div>
+                ),
+              },
+              {
+                key: "status",
+                label: "Status",
+                sortable: true,
+                render: (value, discount) => {
+                  const statusBadge = getStatusBadge(discount);
+                  const StatusIcon = statusBadge.icon;
+                  return (
+                    <Badge className={statusBadge.class}>
+                      <StatusIcon className="h-3 w-3 mr-1" />
+                      {statusBadge.label}
+                    </Badge>
+                  );
+                },
+              },
+              {
+                key: "endDate",
+                label: "Expires",
+                sortable: true,
+                render: (value) => (
+                  <div className="flex items-center gap-2">
+                    <Calendar className="h-4 w-4 text-blue-600" />
+                    <div>
+                      <span className="font-medium block">
+                        {new Date(value).toLocaleDateString()}
+                      </span>
+                      <span className="text-xs text-gray-600">
+                        {new Date(value).toLocaleTimeString()}
+                      </span>
+                    </div>
+                  </div>
+                ),
+              },
+            ]}
+            data={discounts}
+            actions={[
+              {
+                label: "Edit",
+                icon: Edit,
+                variant: "secondary",
+                onClick: handleEditDiscount,
+              },
+              {
+                label: "Toggle Status",
+                icon: (discount) => discount.status === 'Active' ? Pause : Play,
+                onClick: (discount) => handleToggleStatus(discount._id, discount.status),
+                disabled: (discount) => !((discount.status === 'Active' || discount.status === 'Scheduled') && !isExpired(discount.endDate)),
+                variant: "secondary",
+              },
+              {
+                label: "Remove",
+                icon: Trash2,
+                variant: "secondary",
+                onClick: handleRemoveDiscount,
+              },
+            ]}
+            searchable={true}
+            paginated={true}
+            pageSize={10}
+            loading={loading}
+            emptyMessage="No discounts found. Create your first discount to boost sales."
+            searchPlaceholder="Search discounts by name, type, or scope..."
+          />
+        </div>
+      </div>
     </div>
   );
 }
