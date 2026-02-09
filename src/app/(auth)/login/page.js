@@ -19,7 +19,7 @@ export default function LoginPage() {
     if (!authLoading && isAuthenticated && user) {
       redirectUserBasedOnRole(user);
     }
-  }, [isAuthenticated, authLoading, user, router]);
+  }, [isAuthenticated, authLoading, user, router, redirectUserBasedOnRole]);
 
   const redirectUserBasedOnRole = (userData) => {
     // Priority order: role > roleType > isVendor

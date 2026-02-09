@@ -263,7 +263,6 @@ import { NextResponse } from 'next/server';
 import connectDB from '@/lib/mongodb';
 import User from '@/Models/User';
 import { generateToken, getCookieOptions } from '@/lib/jwt';
-import Role from '@/Models/Role';
 // import Vendor from '@/Models/Vendor';
 
 export async function POST(request) {

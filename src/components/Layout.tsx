@@ -29,13 +29,6 @@ const Layout = ({ children }: LayoutProps) => {
     handleResize(); // Set initial state
     window.addEventListener("resize", handleResize);
     
-    // Close sidebar when navigating
-    const handleRouteChange = () => {
-      if (isMobile) {
-        setIsOpen(false);
-      }
-    };
-    
     return () => window.removeEventListener("resize", handleResize);
   }, [isMobile]);
 
