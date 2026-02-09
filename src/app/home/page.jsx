@@ -2,11 +2,24 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
-import ProductCard from "@/components/ProductCard"; // Import ProductCard component
+import ProductCard from "@/components/ProductCard";
 import { productService } from "@/services/productService";
 import { categoryService } from "@/services/categoryService";
 import Footer from "@/components/Footer";
 import ParentReviews from "@/components/Reviews";
+import { 
+  ShoppingBag, 
+  Star, 
+  ArrowRight, 
+  Sparkles, 
+  Gift, 
+  Snowflake,
+  Trees,
+  Shirt,
+  Baby,
+  Gem,
+  Zap
+} from "lucide-react";
 
 export default function HomePage() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -102,6 +115,16 @@ export default function HomePage() {
     setShowScrollbar(false);
   };
 
+  // Helper function to get category icon
+  const getCategoryIcon = (categoryName) => {
+    const name = categoryName.toLowerCase();
+    if (name.includes('girl')) return <Shirt className="w-8 h-8 text-pink-500" />;
+    if (name.includes('boy')) return <Shirt className="w-8 h-8 text-blue-500" />;
+    if (name.includes('baby')) return <Baby className="w-8 h-8 text-yellow-500" />;
+    if (name.includes('accessories')) return <Gem className="w-8 h-8 text-purple-500" />;
+    return <ShoppingBag className="w-8 h-8 text-gray-500" />;
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -114,11 +137,11 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-blue-50">
+    <div className="min-h-screen bg-gray-50">
       <Navbar />
 
       {/* Hero Video Section */}
-      <section className="relative bg-black text-white overflow-hidden">
+      <section className="relative bg-gray-900 text-white overflow-hidden">
         <div className="absolute inset-0">
           <video
             className="w-full h-full object-cover"
@@ -130,23 +153,34 @@ export default function HomePage() {
           >
             <source src={slides[0].video} type="video/mp4" />
           </video>
-          <div className="absolute inset-0 bg-gradient-to-r from-black/70 via-black/60 to-black/70" />
+          <div className="absolute inset-0 bg-gradient-to-r from-gray-900/85 via-gray-900/60 to-gray-900/85" />
         </div>
 
         <div className="relative z-10 container mx-auto px-4 py-16 md:py-28 lg:py-36 min-h-[60vh] flex items-center">
           <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-3 text-[var(--primary-blue)]">
+            <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm px-4 py-2 rounded-full mb-6">
+              <Sparkles className="w-4 h-4 text-yellow-400" />
+              <span className="text-sm font-medium tracking-wide uppercase">Winter Collection 2025</span>
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-serif font-bold mb-4 text-white">
               {slides[0].title}
             </h1>
-            <p className="text-base sm:text-lg md:text-xl mb-6 max-w-2xl mx-auto font-serif text-gray-200">
+            <p className="text-base sm:text-lg md:text-xl mb-8 max-w-2xl mx-auto text-gray-200">
               {slides[0].subtitle}
             </p>
-            <div className="flex justify-center">
+            <div className="flex flex-col sm:flex-row justify-center gap-4">
               <Link
                 href="/product"
-                className="inline-block bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-6 py-3 rounded-full font-serif font-semibold text-base transition transform hover:scale-105 shadow-lg"
+                className="inline-flex items-center justify-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-serif font-semibold text-base transition-all transform hover:scale-105 shadow-lg hover:shadow-xl"
               >
                 Shop Now
+                <ArrowRight className="w-5 h-5" />
+              </Link>
+              <Link
+                href="/categories"
+                className="inline-flex items-center justify-center gap-2 bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white px-8 py-4 rounded-full font-serif font-semibold text-base transition-all"
+              >
+                Explore Collections
               </Link>
             </div>
           </div>
@@ -154,66 +188,28 @@ export default function HomePage() {
       </section>
 
       {/* Categories Horizontal Scroll */}
-      <section className="bg-blue-100 py-8 md:py-12">
+      <section className="bg-white py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <h2 className="text-2xl sm:text-3xl font-serif font-bold text-center text-black mb-6">
-            Shop by Category
-          </h2>
+          <div className="text-center mb-10">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-gray-900 mb-3">
+              Shop by Category
+            </h2>
+            <p className="text-gray-600 max-w-2xl mx-auto">
+              Explore our curated collections for every style and occasion
+            </p>
+          </div>
 
           {categories.length < 5 ? (
-            <div className="flex justify-center gap-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
               {categories.map((category, index) => (
-                <div key={category._id || category.id} className="flex-shrink-0 w-64 md:w-72 bg-blue-50 p-6 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                  <div
-                    role="button"
-                    onClick={() => setSelectedCategory(category.name)}
-                    className="flex flex-col items-center justify-between h-full cursor-pointer"
-                  >
-                    <div className="w-20 h-20 md:w-24 md:h-24 mb-3 rounded-full overflow-hidden bg-white flex items-center justify-center">
-                      {category.image ? (
-                        <img
-                          src={category.image}
-                          alt={category.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="text-3xl md:text-4xl">
-                          {category.name.toLowerCase().includes('girl') ? '👗' :
-                            category.name.toLowerCase().includes('boy') ? '👔' :
-                              category.name.toLowerCase().includes('baby') ? '🍼' :
-                                category.name.toLowerCase().includes('accessories') ? '🧣' : '👕'}
-                        </div>
-                      )}
-                    </div>
-                    <h3 className="text-base md:text-lg font-serif font-semibold text-center">{category.name}</h3>
-                    <p className="text-sm text-gray-600 text-center mt-2">Discover our {category.name.toLowerCase()} collection</p>
-                    <div className="mt-4 w-full">
-                      <button className="w-full bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-4 py-3 rounded-full text-base font-serif transition-colors duration-300">
-                        Shop
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className={`overflow-x-auto  -mx-4 px-4`}>
-              <div
-                className="flex gap-4 snap-x snap-mandatory items-stretch "
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={onTouchEnd}
-              >
-                {/* "All" Category Card - Same size as other categories */}
-
-                {categories.map((category, index) => (
-                  <div key={category._id || category.id} className="flex-shrink-0 snap-start w-48 md:w-56 bg-blue-50 p-4 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-                    <div
-                      role="button"
-                      onClick={() => setSelectedCategory(category.name)}
-                      className="flex flex-col items-center justify-between h-full cursor-pointer"
-                    >
-                      <div className="w-16 h-16 md:w-20 md:h-20 mb-2 rounded-full overflow-hidden bg-white flex items-center justify-center">
+                <div 
+                  key={category._id || category.id} 
+                  className="group cursor-pointer"
+                  onClick={() => setSelectedCategory(category.name)}
+                >
+                  <div className="relative overflow-hidden rounded-2xl bg-gray-100 p-6 transition-all duration-300 group-hover:shadow-lg group-hover:-translate-y-1">
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-20 h-20 md:w-24 md:h-24 mb-4 rounded-full overflow-hidden bg-white flex items-center justify-center shadow-md">
                         {category.image ? (
                           <img
                             src={category.image}
@@ -221,20 +217,65 @@ export default function HomePage() {
                             className="w-full h-full object-cover"
                           />
                         ) : (
-                          <div className="text-2xl md:text-3xl">
-                            {category.name.toLowerCase().includes('girl') ? '👗' :
-                              category.name.toLowerCase().includes('boy') ? '👔' :
-                                category.name.toLowerCase().includes('baby') ? '🍼' :
-                                  category.name.toLowerCase().includes('accessories') ? '🧣' : '👕'}
+                          <div className="text-gray-400">
+                            {getCategoryIcon(category.name)}
                           </div>
                         )}
                       </div>
-                      <h3 className="text-sm md:text-base font-serif font-semibold text-center">{category.name}</h3>
-                      <p className="text-xs text-gray-600 text-center mt-2">Discover our {category.name.toLowerCase()} collection</p>
-                      <div className="mt-3 w-full">
-                        <button className="w-full bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-3 py-2 rounded-full text-sm font-serif transition-colors duration-300">
+                      <h3 className="text-base md:text-lg font-serif font-semibold text-gray-900 mb-2">
+                        {category.name}
+                      </h3>
+                      <p className="text-sm text-gray-500 mb-4">
+                        Discover our {category.name.toLowerCase()} collection
+                      </p>
+                      <span className="inline-flex items-center gap-1 text-blue-600 font-medium text-sm group-hover:gap-2 transition-all">
+                        Shop Now
+                        <ArrowRight className="w-4 h-4" />
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className={`overflow-x-auto -mx-4 px-4 scrollbar-hide`}>
+              <div 
+                className="flex gap-4 snap-x snap-mandatory items-stretch"
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                {categories.map((category, index) => (
+                  <div 
+                    key={category._id || category.id} 
+                    className="flex-shrink-0 snap-start w-48 md:w-56 group cursor-pointer"
+                    onClick={() => setSelectedCategory(category.name)}
+                  >
+                    <div className="bg-gray-50 rounded-xl p-4 h-full transition-all duration-300 group-hover:shadow-md group-hover:-translate-y-1">
+                      <div className="flex flex-col items-center text-center">
+                        <div className="w-16 h-16 md:w-20 md:h-20 mb-3 rounded-full overflow-hidden bg-white flex items-center justify-center shadow-sm">
+                          {category.image ? (
+                            <img
+                              src={category.image}
+                              alt={category.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="text-gray-400">
+                              {getCategoryIcon(category.name)}
+                            </div>
+                          )}
+                        </div>
+                        <h3 className="text-sm md:text-base font-serif font-semibold text-gray-900 mb-1">
+                          {category.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Discover our {category.name.toLowerCase()} collection
+                        </p>
+                        <span className="inline-flex items-center gap-1 text-blue-600 font-medium text-xs group-hover:gap-2 transition-all">
                           Shop
-                        </button>
+                          <ArrowRight className="w-3 h-3" />
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -247,13 +288,25 @@ export default function HomePage() {
 
       {/* Featured Products */}
       {featuredProducts.length > 0 && (
-        <section className="bg-gray-50 py-8 md:py-12">
+        <section className="bg-gray-50 py-12 md:py-16">
           <div className="container mx-auto px-4">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-center text-black mb-6">
-              Featured Products
-            </h2>
+            <div className="flex items-center justify-between mb-8">
+              <div>
+                <h2 className="text-2xl sm:text-3xl md:text-4xl font-serif font-bold text-gray-900">
+                  Featured Products
+                </h2>
+                <p className="text-gray-600 mt-2">Handpicked favorites just for you</p>
+              </div>
+              <Link 
+                href="/product"
+                className="hidden sm:inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                View All
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
               {featuredProducts.map((product) => (
                 <ProductCard
                   key={product._id || product.id}
@@ -261,46 +314,67 @@ export default function HomePage() {
                 />
               ))}
             </div>
+
+            <div className="mt-8 text-center sm:hidden">
+              <Link 
+                href="/product"
+                className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+              >
+                View All Products
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
           </div>
         </section>
       )}
 
       {/* Seasonal Section */}
-      <section className="bg-gradient-to-r from-pink-50 to-purple-50 py-8 md:py-12">
+      <section className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-6 md:mb-10">
-            <h2 className="text-2xl md:text-4xl font-serif font-bold mb-3 md:mb-4 text-gray-800">
+          <div className="text-center mb-12">
+            <span className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-sm text-white px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Snowflake className="w-4 h-4" />
+              Seasonal Collection
+            </span>
+            <h2 className="text-2xl md:text-4xl font-serif font-bold mb-4 text-white">
               Winter Wonderland
             </h2>
-            <p className="text-base md:text-lg text-gray-700 max-w-2xl mx-auto font-serif">
+            <p className="text-gray-300 max-w-2xl mx-auto">
               Discover our exclusive winter collection featuring cozy knits, festive dresses, and holiday-ready outfits for your little ones.
             </p>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="text-5xl mb-3">❄️</div>
-              <h3 className="text-xl font-serif font-semibold mb-1 text-gray-800">Cozy Winter Wear</h3>
-              <p className="text-gray-600 font-serif">Warm jackets, sweaters, and boots perfect for chilly days.</p>
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:bg-white/10 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Snowflake className="w-8 h-8 text-blue-400" />
+              </div>
+              <h3 className="text-xl font-serif font-semibold mb-3 text-white">Cozy Winter Wear</h3>
+              <p className="text-gray-400">Warm jackets, sweaters, and boots perfect for chilly days.</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="text-5xl mb-3">🎄</div>
-              <h3 className="text-xl font-serif font-semibold mb-1 text-gray-800">Holiday Collection</h3>
-              <p className="text-gray-600 font-serif">Festive outfits and party dresses for special occasions.</p>
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:bg-white/10 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-green-600/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Trees className="w-8 h-8 text-green-400" />
+              </div>
+              <h3 className="text-xl font-serif font-semibold mb-3 text-white">Holiday Collection</h3>
+              <p className="text-gray-400">Festive outfits and party dresses for special occasions.</p>
             </div>
-            <div className="text-center p-6 bg-white rounded-lg shadow-sm hover:shadow-md transition-shadow duration-300">
-              <div className="text-5xl mb-3">🧣</div>
-              <h3 className="text-xl font-serif font-semibold mb-1 text-gray-800">Accessories</h3>
-              <p className="text-gray-600 font-serif">Scarves, hats, and gloves to complete the winter look.</p>
+            <div className="group bg-white/5 backdrop-blur-sm rounded-2xl p-8 border border-white/10 hover:bg-white/10 transition-all duration-300">
+              <div className="w-16 h-16 rounded-2xl bg-purple-600/20 flex items-center justify-center mb-6 group-hover:scale-110 transition-transform duration-300">
+                <Zap className="w-8 h-8 text-purple-400" />
+              </div>
+              <h3 className="text-xl font-serif font-semibold mb-3 text-white">Accessories</h3>
+              <p className="text-gray-400">Scarves, hats, and gloves to complete the winter look.</p>
             </div>
           </div>
 
-          <div className="text-center mt-6">
+          <div className="text-center mt-10">
             <Link
               href="/product?category=seasonal"
-              className="inline-block bg-black text-white px-6 py-3 rounded font-serif hover:bg-gray-800 transition-colors duration-300"
+              className="inline-flex items-center gap-2 bg-white text-gray-900 px-8 py-4 rounded-full font-serif font-semibold hover:bg-gray-100 transition-colors"
             >
               Explore Winter Collection
+              <ArrowRight className="w-5 h-5" />
             </Link>
           </div>
         </div>
@@ -313,20 +387,24 @@ export default function HomePage() {
      
 
       {/* Newsletter */}
-      <section className="bg-white text-black py-8 md:py-12">
-        <div className="container mx-auto px-4 text-center">
-          <h2 className="text-2xl md:text-4xl font-serif font-bold mb-3">
-            Stay in Style
-          </h2>
-          <p className="text-base md:text-lg mb-6 max-w-2xl mx-auto font-serif text-gray-700">
-            Subscribe to our newsletter for the latest luxury kidswear updates and exclusive offers.
-          </p>
-          <div className="max-w-md mx-auto">
-            <div className="flex flex-col sm:flex-row gap-3 text-gray-700">
+      <section className="bg-white py-12 md:py-16">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="inline-flex items-center justify-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-medium mb-4">
+              <Gift className="w-4 h-4" />
+              Subscribe & Save
+            </div>
+            <h2 className="text-2xl md:text-4xl font-serif font-bold text-gray-900 mb-4">
+              Stay in Style
+            </h2>
+            <p className="text-gray-600 mb-8">
+              Subscribe to our newsletter for the latest luxury kidswear updates and exclusive offers.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3">
               <input
                 type="email"
                 placeholder="Enter your email"
-                className="flex-grow px-4 py-3 rounded-lg sm:rounded-l-lg bg-white sm:rounded-r-none text-gray-800 focus:outline-none focus:ring-2 focus:ring-[var(--primary-blue)] font-serif"
+                className="flex-grow px-6 py-4 rounded-full bg-gray-100 border border-gray-200 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               />
               <button
                 onClick={() => {
@@ -338,9 +416,10 @@ export default function HomePage() {
                     alert('Please enter a valid email address');
                   }
                 }}
-                className="bg-[var(--primary-blue)] hover:bg-[var(--primary-blue-hover)] text-white px-6 py-3 rounded-lg sm:rounded-r-lg sm:rounded-l-none font-serif transition-colors duration-300"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-full font-serif font-semibold transition-colors flex items-center justify-center gap-2"
               >
                 Subscribe
+                <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           </div>
@@ -348,7 +427,6 @@ export default function HomePage() {
       </section>
 
       {/* Footer */}
-      
       <Footer/>
     </div>
   );
